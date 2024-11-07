@@ -24,18 +24,18 @@ void *handle_client(void *socket_desc) {
     // sscanf(buffer, "%s %s", username, password);
 
     // Authenticate
-    printf("Server scanned credentials...");
+    printf("Server scanned credentials...\n");
     if (authenticate_user(receive_msg.login.username, receive_msg.login.password)) {
         send_msg.response.success = true;
         strcpy(send_msg.response.message, "Login Successful!");
         send_command(client_sock, &send_msg);
-        printf("Server sent successful login response! %d", client_sock);
+        printf("Server sent successful login response! %d\n", client_sock);
     } else {
         send_msg.response.success = false;
-        strcpy(send_msg.response.message, "Login Failed: Wrong credentials!");
-        send(client_sock, "Login Failed", 12, 0);
+        strcpy(send_msg.response.message, "Login Failed - Wrong credentials!");
+        // send(client_sock, "Login Failed", 12, 0);
         send_command(client_sock, &send_msg);
-        printf("Server sent failed login response! %d", client_sock);
+        printf("Server sent failed login response! %d\n", client_sock);
     }
 
     close(client_sock);

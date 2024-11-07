@@ -28,7 +28,7 @@ int main() {
     send_command(sock, &send_msg);
     receive_command(sock, &receive_msg);
 
-    printf("Success: %d\nMessage: %s\n", receive_msg.response.success, receive_msg.response.message);
+    printf("\nSuccess: %d\nMessage: %s\n", receive_msg.response.success, receive_msg.response.message);
     close(sock);
     return 0;
 }
