@@ -8,40 +8,10 @@
 #include "../shared/network.h"
 
 
+void *handle_client(void *socket_desc);
+void *handle_login(int client_sock, Message *send_msg, Message *receive_msg);
+void *handle_command(int client_sock, Message *send_msg, Message *receive_msg);
 
-void *handle_client(void *socket_desc) {
-    int client_sock = *(int *)socket_desc;
-    char buffer[MAX_BUFFER];
-
-    Message receive_msg, send_msg;
-
-    // Receive credentials
-    // recv(client_sock, buffer, MAX_BUFFER, 0);
-    receive_command(client_sock, &receive_msg);
-
-    // Parse credentials
-    // char username[50], password[50];
-    // sscanf(buffer, "%s %s", username, password);
-
-    // Authenticate
-    printf("Server scanned credentials...\n");
-    if (authenticate_user(receive_msg.login.username, receive_msg.login.password)) {
-        send_msg.response.success = true;
-        strcpy(send_msg.response.message, "Login Successful!");
-        send_command(client_sock, &send_msg);
-        printf("Server sent successful login response! %d\n", client_sock);
-    } else {
-        send_msg.response.success = false;
-        strcpy(send_msg.response.message, "Login Failed - Wrong credentials!");
-        // send(client_sock, "Login Failed", 12, 0);
-        send_command(client_sock, &send_msg);
-        printf("Server sent failed login response! %d\n", client_sock);
-    }
-
-    close(client_sock);
-    free(socket_desc);
-    return 0;
-}
 
 int main() {
     int server_sock, client_sock, c;
@@ -64,5 +34,61 @@ int main() {
     }
 
     close(server_sock);
+    return 0;
+}
+
+
+
+void *handle_client(void *socket_desc) {
+    int client_sock = *(int *)socket_desc;
+    char buffer[MAX_BUFFER];
+
+    Message receive_msg, send_msg;
+
+    // Receive credentials
+    receive_command(client_sock, &receive_msg);
+    printf("Server scanned the message...\n");
+
+    switch (receive_msg.type){
+        case LOGIN:
+            handle_login(client_sock, &send_msg, &receive_msg);
+            break;
+        case COMMAND:
+            handle_command(client_sock, &send_msg, &receive_msg);
+            break;
+        default:
+            send_msg.content.response.success = false;
+            strcpy(send_msg.content.response.message, "Invalid message type.");
+            send_command(client_sock, &send_msg);
+            printf("Invalid message received from client %d\n", client_sock);
+            break;
+    }
+
+    close(client_sock);
+    free(socket_desc);
+    return 0;
+}
+
+
+void *handle_login(int client_sock, Message *send_msg, Message *receive_msg){
+    send_msg->type = RESPONSE;
+    
+    if (authenticate_user(receive_msg->content.login.username, receive_msg->content.login.password)) {
+        send_msg->content.response.success = true;
+        strcpy(send_msg->content.response.message, "Login Successful!");
+        send_command(client_sock, send_msg);
+        printf("Server sent successful login response! %d\n", client_sock);
+    } else {
+        send_msg->content.response.success = false;
+        strcpy(send_msg->content.response.message, "Login Failed - Wrong credentials!");
+        // send(client_sock, "Login Failed", 12, 0);
+        send_command(client_sock, send_msg);
+        printf("Server sent failed login response! %d\n", client_sock);
+    }
+    return 0;
+}
+
+
+void *handle_command(int client_sock, Message *send_msg, Message *receive_msg){
     return 0;
 }
