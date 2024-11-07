@@ -14,7 +14,7 @@ void send_command(int sockfd, Message *msg){
     memcpy(buffer, msg, msg_size);
 
     printf("Send command: %s\n", buffer);
-    printf("Send command: %s\n", msg->login.username);
+    printf("Send command: %s\n", msg->content.login.username);
 
     if (send(sockfd, buffer, msg_size, 0) == -1){
         perror("Message Send Failed.");
@@ -34,5 +34,5 @@ void receive_command(int sockfd, Message *msg){
     memcpy(msg, buffer, msg_size);
 
     printf("Receive command: %s\n", buffer);
-    printf("Receive command: %s\n", msg->response.message);
+    printf("Receive command: %s\n", msg->content.response.message);
 }

@@ -20,15 +20,16 @@ int main() {
 
     // Take user input
     Message send_msg, receive_msg;
+    send_msg.type = LOGIN;
     printf("Enter username: ");
-    scanf("%s", send_msg.login.username);
+    scanf("%s", send_msg.content.login.username);
     printf("Enter password: ");
-    scanf("%s", send_msg.login.password);
+    scanf("%s", send_msg.content.login.password);
 
     send_command(sock, &send_msg);
     receive_command(sock, &receive_msg);
 
-    printf("\nSuccess: %d\nMessage: %s\n", receive_msg.response.success, receive_msg.response.message);
+    printf("\nSuccess: %d\nMessage: %s\n", receive_msg.content.response.success, receive_msg.content.response.message);
     close(sock);
     return 0;
 }

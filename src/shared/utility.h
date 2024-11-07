@@ -31,10 +31,23 @@ typedef struct {
 } ResponseMessage;
 
 
-typedef struct {
+typedef enum {
+    LOGIN,
+    COMMAND,
+    RESPONSE
+} MessageType;
+
+
+typedef union {
     LoginMessage login;
     CommandMessage command;
     ResponseMessage response;
+} MessageContent;
+
+
+typedef struct {
+    MessageType type;
+    MessageContent content;
 } Message;
 
 #endif
