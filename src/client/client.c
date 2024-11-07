@@ -3,11 +3,13 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include "../shared/network.h"
+#include "../shared/utility.h"
+
 
 int main() {
     int sock;
     struct sockaddr_in server;
-    char message[MAX_BUFFER], response[MAX_BUFFER];
+    // char message[MAX_BUFFER], response[MAX_BUFFER];
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -17,16 +19,16 @@ int main() {
     connect(sock, (struct sockaddr *)&server, sizeof(server));
 
     // Take user input
+    Message send_msg, receive_msg;
     printf("Enter username: ");
-    scanf("%s", message);
-    strcat(message, " ");
+    scanf("%s", send_msg.login.username);
     printf("Enter password: ");
-    scanf("%s", message + strlen(message));
+    scanf("%s", send_msg.login.password);
 
-    send(sock, message, strlen(message), 0);
-    recv(sock, response, MAX_BUFFER, 0);
+    send_command(sock, &send_msg);
+    receive_command(sock, &receive_msg);
 
-    printf("%s\n", response);
+    printf("Success: %d\nMessage: %s\n", receive_msg.response.success, receive_msg.response.message);
     close(sock);
     return 0;
 }

@@ -7,24 +7,34 @@
 #include "../shared/auth.h"
 #include "../shared/network.h"
 
+
+
 void *handle_client(void *socket_desc) {
     int client_sock = *(int *)socket_desc;
     char buffer[MAX_BUFFER];
 
+    Message receive_msg, send_msg;
+
     // Receive credentials
-    recv(client_sock, buffer, MAX_BUFFER, 0);
+    // recv(client_sock, buffer, MAX_BUFFER, 0);
+    receive_command(client_sock, &receive_msg);
 
     // Parse credentials
-    char username[50], password[50];
-    sscanf(buffer, "%s %s", username, password);
+    // char username[50], password[50];
+    // sscanf(buffer, "%s %s", username, password);
 
     // Authenticate
     printf("Server scanned credentials...");
-    if (authenticate_user(username, password)) {
-        send(client_sock, "Login Successful", 16, 0);
+    if (authenticate_user(receive_msg.login.username, receive_msg.login.password)) {
+        send_msg.response.success = true;
+        strcpy(send_msg.response.message, "Login Successful!");
+        send_command(client_sock, &send_msg);
         printf("Server sent successful login response! %d", client_sock);
     } else {
+        send_msg.response.success = false;
+        strcpy(send_msg.response.message, "Login Failed: Wrong credentials!");
         send(client_sock, "Login Failed", 12, 0);
+        send_command(client_sock, &send_msg);
         printf("Server sent failed login response! %d", client_sock);
     }
 
