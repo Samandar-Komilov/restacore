@@ -55,3 +55,4 @@ sqlite3/
 src/db/
 build/
 data/
+.vscode/
