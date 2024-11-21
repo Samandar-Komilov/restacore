@@ -4,14 +4,17 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+
 #include "../shared/auth.h"
 #include "../shared/network.h"
+#include "order.h"
 
 
 void *handle_client(void *socket_desc);
 void *handle_login(int client_sock, Message *send_msg, Message *receive_msg);
 void *handle_command(int client_sock, Message *send_msg, Message *receive_msg);
 
+void handle_inventory_requests(int client_sock, Message *send_msg, Message *receive_msg);
 
 int main() {
     int server_sock, client_sock, c;
@@ -90,5 +93,22 @@ void *handle_login(int client_sock, Message *send_msg, Message *receive_msg){
 
 
 void *handle_command(int client_sock, Message *send_msg, Message *receive_msg){
-    return 0;
+    
+    switch (receive_msg->content.command.unit){
+        case ORDER:
+            handle_order_requests(client_sock, send_msg, receive_msg);
+            break;
+        case INVENTORY:
+            handle_inventory_requests(client_sock, send_msg, receive_msg);
+            break;
+        default:
+            send_msg->content.response.success = false;
+            strcpy(send_msg->content.response.message, "Invalid message type.");
+            send_command(client_sock, send_msg);
+            printf("Invalid message received from client %d\n", client_sock);
+            break;
+    }
+}
+
+void handle_inventory_requests(int client_sock, Message *send_msg, Message *receive_msg){
 }

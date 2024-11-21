@@ -11,6 +11,19 @@
 
 
 
+typedef enum {
+    CREATE,
+    READ,
+    UPDATE,
+    DELETE
+} Command;
+
+typedef enum {
+    ORDER,
+    INVENTORY,
+    SALARY
+} Unit;
+
 typedef struct {
     char username[MAX_USERNAME_LEN];
     char password[MAX_PASSWORD_LEN];
@@ -18,8 +31,9 @@ typedef struct {
 
 
 typedef struct {
+    Unit unit;
+    Command command;
     char token[MAX_TOKEN_LEN];
-    char command[MAX_COMMAND_LEN];
     char data[MAX_DATA_LEN];
 } CommandMessage;
 
