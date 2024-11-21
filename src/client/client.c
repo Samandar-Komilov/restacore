@@ -6,18 +6,18 @@
 #include "../shared/utility.h"
 
 #include <gtk/gtk.h>
-#include "../gui/login.h"
+// #include "../gui/login.h"
 
 
 int main(int argc, char* argv[]) {
-    gtk_init(&argc, &argv);
+    // gtk_init(&argc, &argv);
 
-    GtkWidget *login_window = create_login_window();
-    gtk_widget_show_all(login_window);
+    // GtkWidget *login_window = create_login_window();
+    // gtk_widget_show_all(login_window);
 
-    g_signal_connect(login_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    // g_signal_connect(login_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-    gtk_main();
+    // gtk_main();
 
     int sock;
     struct sockaddr_in server;

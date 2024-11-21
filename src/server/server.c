@@ -96,21 +96,19 @@ void *handle_command(int client_sock, Message *send_msg, Message *receive_msg){
     
     switch (receive_msg->content.command.unit){
         case ORDER:
-            handle_order_requests(client_sock, &send_msg, &receive_msg);
+            handle_order_requests(client_sock, send_msg, receive_msg);
             break;
         case INVENTORY:
-            handle_inventory_requests(client_sock, &send_msg, &receive_msg);
+            handle_inventory_requests(client_sock, send_msg, receive_msg);
             break;
         default:
             send_msg->content.response.success = false;
             strcpy(send_msg->content.response.message, "Invalid message type.");
-            send_command(client_sock, &send_msg);
+            send_command(client_sock, send_msg);
             printf("Invalid message received from client %d\n", client_sock);
             break;
     }
-    return 0;
 }
 
 void handle_inventory_requests(int client_sock, Message *send_msg, Message *receive_msg){
-    return 0;
 }
