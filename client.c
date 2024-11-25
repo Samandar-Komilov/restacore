@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-// #include <gtk/gtkx.h>
-// #include <gtk/gtk.h>
+#include <gtk/gtkx.h>
+#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -9,69 +9,80 @@
 #include <sys/time.h>
 
 #include "utils.h"
+#include "client_functions.h"
 
-
+int sock; // Server socket
 int id; // user_id global variable
 char* role; // user role global variable
 
 
-/* Prototypes */
-int connect_to_server();
-void send_to_server(int sock, const char* data);
-void disconnect_from_server(int sock);
+/* GTK handlers */
+void on_register_button_clicked(GtkButton *button, gpointer user_data);
+void on_sign_up_back_clicked(GtkButton *button, gpointer user_data);
 
 
 int main(int argc, char* argv[]){
-    int sock = connect_to_server();
+    gtk_init(&argc, &argv);
+    
+    // sock = connect_to_server();
 
-    // GTK related data
+    GtkBuilder *builder = gtk_builder_new();
+    if (!gtk_builder_add_from_file(builder, "glade/register.glade", NULL)) {
+        g_error("Failed to load Glade file.");
+    }
+
+    // Get the main window
+    GtkWidget *register_window = GTK_WIDGET(gtk_builder_get_object(builder, "Register"));
+    g_signal_connect(register_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+
+    // Fetch widgets
+    GtkWidget *username_entry = GTK_WIDGET(gtk_builder_get_object(builder, "username"));
+    GtkWidget *password_entry = GTK_WIDGET(gtk_builder_get_object(builder, "password"));
+    GtkWidget *confirm_password_entry = GTK_WIDGET(gtk_builder_get_object(builder, "confirm_password"));
+    GtkWidget *register_button = GTK_WIDGET(gtk_builder_get_object(builder, "register_button"));
+    GtkWidget *sign_up_back_button = GTK_WIDGET(gtk_builder_get_object(builder, "sign_up_back"));
+
+    // Attach signal handlers
+    g_signal_connect(register_button, "clicked", G_CALLBACK(on_register_button_clicked), 
+                     (gpointer)username_entry);
+    g_signal_connect(sign_up_back_button, "clicked", G_CALLBACK(on_sign_up_back_clicked), register_window);
+
+    // Show the register window
+    gtk_widget_show_all(register_window);
+
+    // Start the GTK main loop
+    gtk_main();
 
     return 0;
 }
 
+/* Callback for Register button */
+void on_register_button_clicked(GtkButton *button, gpointer user_data) {
+    GtkWidget *username_entry = GTK_WIDGET(user_data);
+    GtkWidget *password_entry = GTK_WIDGET(g_object_get_data(G_OBJECT(button), "password_entry"));
+    GtkWidget *confirm_password_entry = GTK_WIDGET(g_object_get_data(G_OBJECT(button), "confirm_password_entry"));
 
-int connect_to_server(){
-    struct sockaddr_in serv_addr;
-    int sock;
+    const char *username = gtk_entry_get_text(GTK_ENTRY(username_entry));
+    const char *password = gtk_entry_get_text(GTK_ENTRY(password_entry));
+    const char *confirm_password = gtk_entry_get_text(GTK_ENTRY(confirm_password_entry));
 
-    printf("Creating client socket...\n");
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Socket creation error");
-        exit(EXIT_FAILURE);
+    if (strlen(username) == 0 || strlen(password) == 0 || strlen(confirm_password) == 0) {
+        g_print("All fields must be filled out.\n");
+        return;
     }
 
-    printf("Defining client socket family: (address, port)...\n");
-    memset(&serv_addr, '0', sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-
-    if (inet_pton(AF_INET, SERVER_ADDRESS, &serv_addr.sin_addr) <= 0) {
-        perror("Invalid address/Address not supported");
-        exit(EXIT_FAILURE);
+    if (strcmp(password, confirm_password) != 0) {
+        g_print("Passwords do not match.\n");
+        return;
     }
 
-    printf("Client is connecting to the server...\n");
-    while (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        perror("Connection failed. Retrying...");
-        sleep(1); // Wait for a while before retrying
-    }
-
-    printf("Connection established.\n");
-    return sock;
+    // Send registration data to the server
+    // register_user(sock, username, password);
 }
 
-void send_to_server(int sock, const char *data) {
-    size_t data_len = strlen(data);
-    if (send(sock, data, data_len, 0) != data_len) {
-        fprintf(stderr, "Error sending data.\n");
-        // Handle the error, close the connection, or take appropriate action
-    } else {
-        printf("Data sent successfully. The data: %s\n", data);
-    }
-}
-
-void disconnect_from_server(int sock) {
-    // Close the socket
-    close(sock);
-    printf("Disconnected from the server.\n");
+/* Callback for Back button */
+void on_sign_up_back_clicked(GtkButton *button, gpointer user_data) {
+    GtkWidget *register_window = GTK_WIDGET(user_data);
+    gtk_widget_hide(register_window); // Hide the register window (replace with navigation logic if needed)
+    g_print("Back to the previous screen.\n");
 }

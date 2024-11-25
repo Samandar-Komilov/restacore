@@ -61,31 +61,140 @@ void *handle_command(void *client_fd_ptr){
 
         if (received_bytes <= 0) {
             if (received_bytes == 0) {
-                // Client disconnected
                 printf("[DISCONNECTED] Connection closed by client [%s]\n",client_ip);
             } else {
                 perror("Error receiving data from the client");
             }
-            break; // Exit the loop when the client disconnects
+            break;
         }
 
         printf("[CLIENT] %s\n", buffer);
-        // switch (receive_msg->content.command.unit){
-        //     case ORDER:
-        //         handle_order_requests(client_sock, send_msg, receive_msg);
-        //         break;
-        //     case INVENTORY:
-        //         handle_inventory_requests(client_sock, send_msg, receive_msg);
-        //         break;
-        //     default:
-        //         send_msg->content.response.success = false;
-        //         strcpy(send_msg->content.response.message, "Invalid message type.");
-        //         send_command(client_sock, send_msg);
-        //         printf("Invalid message received from client %d\n", client_sock);
-        //         break;
-        // }
+        
+        /* Respond to commands accordingly */
+        if (strstr(buffer, "REGISTER|") != NULL) {
+            handle_register(buffer, client_fd);
+        }
+        if (strstr(buffer, "LOGIN|") != NULL) {
+            handle_login(buffer, client_fd);
+        }
     }
 }
+
+
+/* ******* USERS AUTH ******* */
+
+void handle_login(const char *data, int client_fd){
+    char username[100], password[100];
+    if (sscanf(data, "CLIENT_LOGIN|%99[^|]|%99[^|]", username, password) != 2) {
+        printf("LOGIN_DATA: [%s][%s]\n", username, password);
+        fprintf(stderr, "Invalid login data format: %s\n", data);
+        return;
+    }
+
+    printf("Received login request with username: %s, password: %s\n", username, password);
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    // Prepare a parameterized SQL query to prevent SQL injection
+    const char *query = "SELECT customerID FROM customers WHERE username = $1 AND password = $2";
+    const char *param_values[2] = {username, password};
+
+    // Execute the query with parameters
+    PGresult *res = PQexecParams(conn, query, 2, NULL, param_values, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "Failed to execute query: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQfinish(conn);
+        return;
+    }
+
+    int num_rows = PQntuples(res);
+
+    if (num_rows > 0) {
+        // Get the customerID
+        const char *client_id_str = PQgetvalue(res, 0, 0);
+        int client_id = atoi(client_id_str);
+
+        // Send success response
+        char response[256];
+        snprintf(response, sizeof(response), "true|%d", client_id);
+        send(client_fd, response, strlen(response), 0);
+        printf("[LOGIN_SUCCESS] Sent 'true' response with client ID (%d) to client\n", client_id);
+    } else {
+        // Send failure response
+        char response[] = "false";
+        send(client_fd, response, strlen(response), 0);
+        printf("[LOGIN_FAILURE] Sent 'false' response to client\n");
+    }
+
+    // Clean up
+    PQclear(res);
+    PQfinish(conn);
+}
+
+void handle_register(const char* data, int client_fd) {
+    char username[255], password[255];
+    const char *default_role = "user";
+    char created_at[64];
+
+    // Parse the incoming data
+    if (sscanf(data, "REGISTER|%254[^|]|%254[^|]", username, password) != 2) {
+        fprintf(stderr, "Invalid registration data format: %s\n", data);
+        char response[] = "register_failed|invalid_format";
+        send(client_fd, response, strlen(response), 0);
+        return;
+    }
+
+    printf("Registering user: %s\n", username);
+
+    // Get current timestamp for created_at
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(created_at, sizeof(created_at), "%Y-%m-%d %H:%M:%S", t);  // Format: YYYY-MM-DD HH:MM:SS
+
+    // Connect to the PostgreSQL database
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        char response[] = "register_failed|db_connection_error";
+        send(client_fd, response, strlen(response), 0);
+        return;
+    }
+
+    // Insert the user into the database
+    const char *query = "INSERT INTO customers (username, password, role, created_at) VALUES ($1, $2, $3, $4) RETURNING customerID";
+    const char *param_values[4] = { username, password, default_role, created_at };
+
+    PGresult *res = PQexecParams(conn, query, 4, NULL, param_values, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "Failed to insert new user: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQfinish(conn);
+        char response[] = "register_failed|db_error";
+        send(client_fd, response, strlen(response), 0);
+        return;
+    }
+
+    // Retrieve the newly created customerID
+    char *customer_id = PQgetvalue(res, 0, 0);
+    printf("Successfully registered user with ID: %s\n", customer_id);
+
+    // Send success response to the client
+    char response[256];
+    snprintf(response, sizeof(response), "register_success|%s", customer_id);
+    send(client_fd, response, strlen(response), 0);
+
+    // Cleanup
+    PQclear(res);
+    PQfinish(conn);
+}
+
 
 
 /* ******* USERS CRUD operations ******* */
