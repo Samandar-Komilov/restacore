@@ -7,6 +7,7 @@
 #include <sys/time.h>
 
 #include "utils.h"
+#include "client_functions.h"
 
 
 int connect_to_server(){
@@ -39,23 +40,25 @@ int connect_to_server(){
     return sock;
 }
 
-void send_to_server(int sock, const char *data) {
+int send_to_server(int sock, const char *data) {
     size_t data_len = strlen(data);
     if (send(sock, data, data_len, 0) != data_len) {
         fprintf(stderr, "Error sending data.\n");
-        // Handle the error, close the connection, or take appropriate action
-    } else {
-        printf("Data sent successfully. The data: %s\n", data);
+        disconnect_from_server(sock);
+        return 1;
     }
+    printf("Data sent successfully. The data: %s\n", data);
+    return 0;
 }
 
-void disconnect_from_server(int sock) {
+int disconnect_from_server(int sock) {
     // Close the socket
     close(sock);
     printf("Disconnected from the server.\n");
+    return 0;
 }
 
-void register_user(int sock_fd, const char *username, const char *password) {
+int register_user(int sock_fd, const char *username, const char *password) {
     // Construct the registration message
     char message[512];
     snprintf(message, sizeof(message), "REGISTER|%s|%s", username, password);
@@ -63,7 +66,7 @@ void register_user(int sock_fd, const char *username, const char *password) {
     // Send the registration request to the server
     if (send(sock_fd, message, strlen(message), 0) == -1) {
         perror("Failed to send register request");
-        return;
+        return 1;
     }
 
     // Receive the server's response
@@ -71,20 +74,21 @@ void register_user(int sock_fd, const char *username, const char *password) {
     int bytes_received = recv(sock_fd, response, sizeof(response) - 1, 0);
     if (bytes_received <= 0) {
         perror("Failed to receive register response");
-        return;
+        return 2;
     }
     response[bytes_received] = '\0';
 
     // Process the response
     if (strncmp(response, "register_success", 16) == 0) {
         printf("Registration successful! Assigned customerID: %s\n", response + 17);
-    } else {
-        printf("Registration failed: %s\n", response);
+        return 0;
     }
+    printf("Registration failed: %s\n", response);
+    return -1;
 }
 
 
-void login_user(int sock_fd, const char *username, const char *password) {
+int login_user(int sock_fd, const char *username, const char *password) {
     // Construct the login message
     char message[512];
     snprintf(message, sizeof(message), "CLIENT_LOGIN|%s|%s", username, password);
@@ -92,7 +96,7 @@ void login_user(int sock_fd, const char *username, const char *password) {
     // Send the login request to the server
     if (send(sock_fd, message, strlen(message), 0) == -1) {
         perror("Failed to send login request");
-        return;
+        return 1;
     }
 
     // Receive the server's response
@@ -100,14 +104,15 @@ void login_user(int sock_fd, const char *username, const char *password) {
     int bytes_received = recv(sock_fd, response, sizeof(response) - 1, 0);
     if (bytes_received <= 0) {
         perror("Failed to receive login response");
-        return;
+        return 2;
     }
     response[bytes_received] = '\0';
 
     // Process the response
     if (strncmp(response, "true", 4) == 0) {
         printf("Login successful! Assigned customerID: %s\n", response + 5);
-    } else {
-        printf("Login failed: Invalid username or password.\n");
+        return 0;
     }
+    printf("Login failed: Invalid username or password.\n");
+    return -1;
 }

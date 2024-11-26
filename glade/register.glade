@@ -352,7 +352,7 @@
   </object>
   <object class="GtkWindow" id="welcome_page">
     <property name="can-focus">False</property>
-    <property name="title" translatable="yes">Sign Up </property>
+    <property name="title" translatable="yes">Register</property>
     <property name="resizable">False</property>
     <property name="default-width">800</property>
     <property name="default-height">400</property>
