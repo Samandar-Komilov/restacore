@@ -82,25 +82,6 @@ int main() {
 
     close(server_fd);
 
-    // PGresult *res = PQexec(conn, "SELECT id, name FROM my_table");
-    // if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-    //     fprintf(stderr, "Query failed: %s", PQerrorMessage(conn));
-    //     PQclear(res);
-    //     disconnect_db(conn);
-    // }
-
-    // int nrows = PQntuples(res);
-    // int nfields = PQnfields(res);
-    // for (int i = 0; i < nrows; i++) {
-    //     for (int j = 0; j < nfields; j++) {
-    //         printf("%s\t", PQgetvalue(res, i, j));
-    //     }
-    //     printf("\n");
-    // }
-
-    // // Clean up
-    // PQclear(res);
-    // PQfinish(conn);
     return 0;
 }
 

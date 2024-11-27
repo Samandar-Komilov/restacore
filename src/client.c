@@ -9,6 +9,7 @@
 #include <sys/time.h>
 
 #include "utils.h"
+#include "client_functions.h"
 
 // Global variables
 int sock;
@@ -34,7 +35,7 @@ void on_login_button_clicked();
 int main(int argc, char* argv[]){
     gtk_init(&argc, &argv);
 
-    auth_builder = gtk_builder_new_from_file("register.glade");
+    auth_builder = gtk_builder_new_from_file("glade/register.glade");
     WelcomePage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "welcome_page"));
     RegisterPage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "Register"));
     LoginPage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "Login"));
@@ -45,19 +46,16 @@ int main(int argc, char* argv[]){
     // Welcome Page data
     GtkWidget *register_button_main = GTK_WIDGET(gtk_builder_get_object(auth_builder, "register_button_main"));
     GtkWidget *login_button_main = GTK_WIDGET(gtk_builder_get_object(auth_builder, "login_button_main"));
-    g_signal_connect(register_button_main, "clicked", G_CALLBACK(on_register_button_main_clicked));
-    g_signal_connect(login_button_main, "clicked", G_CALLBACK(on_login_button_main_clicked));
+    g_signal_connect(register_button_main, "clicked", G_CALLBACK(on_register_button_main_clicked), NULL);
+    g_signal_connect(login_button_main, "clicked", G_CALLBACK(on_login_button_main_clicked), NULL);
 
     
 
 
     sock = connect_to_server();
 
-    gtk_widget_show_all(register_window);
-
+    gtk_widget_show_all(WelcomePage);
     gtk_main();
-
-
 
     return 0;
 }
@@ -100,7 +98,24 @@ void on_register_button_clicked() {
     }
 
     // Send registration data to the server
-    // register_user(sock, username_register, password_register);
+    int status = register_user(sock, username_register, password_register);
+
+    switch (status) {
+    case 0:
+        g_print("Registration successful. Redirecting to login page...\n");
+        sleep(1);
+        // Hide and show windows
+        break;
+    case 1:
+        g_print("Failed to send register request.\n");
+        break;
+    case 2:
+        g_print("Failed to receive register response.\n");
+        break;
+    default:
+        g_print("Registration failed.\n");
+        break;
+    }
 }
 
 void on_sign_up_back_clicked(GtkButton *button, gpointer user_data) {
@@ -125,7 +140,24 @@ void on_login_button_clicked() {
     }
 
     // Send login data to the server
-    // login_user(sock, username_login, password_login);
+    int status = login_user(sock, username_login, password_login);
+
+    switch (status) {
+    case 0:
+        g_print("Login successful. Redirecting to main page...\n");
+        sleep(1);
+        // Hide and show windows
+        break;
+    case 1:
+        g_print("Failed to send login request.\n");
+        break;
+    case 2:
+        g_print("Failed to receive login response.\n");
+        break;
+    default:
+        g_print("Login failed.\n");
+        break;
+    }
 }
 
 void on_login_back_clicked() {
