@@ -129,17 +129,19 @@ void handle_login(const char *data, int client_fd){
     int num_rows = PQntuples(res);
 
     if (num_rows > 0) {
-        // Get the customerID
         const char *client_id_str = PQgetvalue(res, 0, 0);
-        int client_id = atoi(client_id_str);
+        const char *username_str = PQgetvalue(res, 0, 1);
+        const char *password_str = PQgetvalue(res, 0, 2);
+        const char *role_str = PQgetvalue(res, 0, 3);
+        const char *created_at_str = PQgetvalue(res, 0, 4);
 
-        // Send success response
-        char response[256];
-        snprintf(response, sizeof(response), "true|%d", client_id);
+        char response[512];
+        snprintf(response, sizeof(response), "true|%s|%s|%s|%s|%s", 
+                 client_id_str, username_str, password_str, role_str, created_at_str);
+
         send(client_fd, response, strlen(response), 0);
-        printf("[LOGIN_SUCCESS] Sent 'true' response with client ID (%d) to client\n", client_id);
+        printf("[LOGIN_SUCCESS] Sent user credentials to client: %s\n", response);
     } else {
-        // Send failure response
         char response[] = "false";
         send(client_fd, response, strlen(response), 0);
         printf("[LOGIN_FAILURE] Sent 'false' response to client\n");

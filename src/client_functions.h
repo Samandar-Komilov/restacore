@@ -7,6 +7,6 @@ int disconnect_from_server(int sock);
 
 /* User Auth handlers */
 int register_user(int sock_fd, const char *username, const char *password);
-int login_user(int sock_fd, const char *username, const char *password);
+char* login_user(int sock_fd, const char *username, const char *password);
 
 #endif

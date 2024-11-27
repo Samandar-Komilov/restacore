@@ -18,7 +18,9 @@ int id;
 char* role;
 
 GtkBuilder *auth_builder;
+GtkBuilder *main_builder;
 GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *InvalidPassword;
+GtkWidget *MainPage;
 
 
 /* GTK handlers */
@@ -30,7 +32,10 @@ void on_register_back_clicked();
 void on_login_button_clicked();
 void on_login_back_clicked();
 
-
+void on_orders_btn_clicked();
+void on_products_btn_clicked();
+void on_tables_btn_clicked();
+void on_users_btn_clicked();
 
 
 /* ----------------- MAIN */
@@ -42,12 +47,16 @@ int main(int argc, char* argv[]){
     set_log_file("logs/server.log");
 
     auth_builder = gtk_builder_new_from_file("glade/register.glade");
+    main_builder = gtk_builder_new_from_file("glade/main_page.glade");
+
     WelcomePage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "welcome_page"));
     RegisterPage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "Register"));
     LoginPage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "Login"));
+    MainPage = GTK_WIDGET(gtk_builder_get_object(main_builder, "MainPage"));
     g_signal_connect(WelcomePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(RegisterPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); //..
     g_signal_connect(LoginPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); // will be changed
+    g_signal_connect(MainPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     // Welcome Page data
     GtkWidget *register_button_main = GTK_WIDGET(gtk_builder_get_object(auth_builder, "register_button_main"));
@@ -66,6 +75,14 @@ int main(int argc, char* argv[]){
     GtkWidget *login_back = GTK_WIDGET(gtk_builder_get_object(auth_builder, "login_back"));
     g_signal_connect(login_button, "clicked", G_CALLBACK(on_login_button_clicked), NULL);
     g_signal_connect(login_back, "clicked", G_CALLBACK(on_login_back_clicked), NULL);
+
+    // Main Page data
+    GtkWidget *profile_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "profile_btn"));
+    GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(main_builder, "profile_label"));
+    GtkWidget *orders_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "orders_btn"));
+    GtkWidget *products_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "products_btn"));
+    GtkWidget *tables_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "tables_btn"));
+    GtkWidget *users_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "users_btn"));
 
 
     sock = connect_to_server();
@@ -125,7 +142,7 @@ void on_register_button_clicked() {
         g_print("Registration successful. Redirecting to login page...\n");
         sleep(1);
         gtk_widget_hide (GTK_WIDGET(RegisterPage));
-        gtk_widget_hide (GTK_WIDGET(LoginPage));
+        gtk_widget_show (GTK_WIDGET(LoginPage));
         break;
     case 1:
         g_print("Failed to send register request.\n");
@@ -164,28 +181,49 @@ void on_login_button_clicked() {
 
     printf("DEBUG::: Login/Login button clicked, validations approved.");
 
-    // Send login data to the server
-    int status = login_user(sock, username_login, password_login);
+    char* response = login_user(sock, username_login, password_login);
 
-    switch (status) {
-    case 0:
-        g_print("Login successful. Redirecting to main page...\n");
-        sleep(1);
-        // Hide and show windows
-        break;
-    case 1:
-        g_print("Failed to send login request.\n");
-        break;
-    case 2:
-        g_print("Failed to receive login response.\n");
-        break;
-    default:
-        g_print("Login failed.\n");
-        break;
-    }
+    printf("RESPONSE: %s\n", response);
+
+    // switch (status) {
+    // case 0:
+    //     g_print("Login successful. Redirecting to main page...\n");
+    //     sleep(1);
+    //     gtk_widget_hide(LoginPage);
+    //     gtk_widget_show(MainPage);
+    //     break;
+    // case 1:
+    //     g_print("Failed to send login request.\n");
+    //     break;
+    // case 2:
+    //     g_print("Failed to receive login response.\n");
+    //     break;
+    // default:
+    //     g_print("Login failed.\n");
+    //     break;
+    // }
 }
 
 void on_login_back_clicked() {
     gtk_widget_hide (GTK_WIDGET(LoginPage));
  	gtk_widget_show (GTK_WIDGET(WelcomePage));
+}
+
+
+/* ----------------- MAIN PAGE */
+
+void on_orders_btn_clicked(){
+
+}
+
+void on_products_btn_clicked(){
+
+}
+
+void on_tables_btn_clicked(){
+
+}
+
+void on_users_btn_clicked(){
+
 }
