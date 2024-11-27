@@ -4,7 +4,7 @@
 
 #ifndef UTILS_H
 
-#define PORT 8080
+#define PORT 8088
 #define MAX_BUFFER 1024
 #define SERVER_ADDRESS "192.168.0.105"
 

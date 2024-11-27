@@ -25,7 +25,9 @@ void on_login_button_main_clicked();
 void on_register_button_main_clicked();
 
 void on_register_button_clicked();
+void on_register_back_clicked();
 void on_login_button_clicked();
+void on_login_back_clicked();
 
 
 
@@ -49,7 +51,17 @@ int main(int argc, char* argv[]){
     g_signal_connect(register_button_main, "clicked", G_CALLBACK(on_register_button_main_clicked), NULL);
     g_signal_connect(login_button_main, "clicked", G_CALLBACK(on_login_button_main_clicked), NULL);
 
-    
+    // Register Page data
+    GtkWidget *register_button = GTK_WIDGET(gtk_builder_get_object(auth_builder, "register_button"));
+    GtkWidget *register_back = GTK_WIDGET(gtk_builder_get_object(auth_builder, "register_back"));
+    g_signal_connect(register_button, "clicked", G_CALLBACK(on_register_button_clicked), NULL);
+    g_signal_connect(register_back, "clicked", G_CALLBACK(on_register_back_clicked), NULL);
+
+    // Login Page data
+    GtkWidget *login_button = GTK_WIDGET(gtk_builder_get_object(auth_builder, "login_button"));
+    GtkWidget *login_back = GTK_WIDGET(gtk_builder_get_object(auth_builder, "login_back"));
+    g_signal_connect(login_button, "clicked", G_CALLBACK(on_login_button_clicked), NULL);
+    g_signal_connect(login_back, "clicked", G_CALLBACK(on_login_back_clicked), NULL);
 
 
     sock = connect_to_server();
@@ -87,6 +99,8 @@ void on_register_button_clicked() {
     const char *password_register = gtk_entry_get_text(GTK_ENTRY(entry_password_register));
     const char *confirm_password_register = gtk_entry_get_text(GTK_ENTRY(entry_confirm_password_register));
 
+    printf("DEBUG::: Register/Register button clicked, credentials taken.");
+
     if (strlen(username_register) == 0 || strlen(password_register) == 0 || strlen(confirm_password_register) == 0) {
         g_print("All fields must be filled out.\n");
         return;
@@ -97,6 +111,8 @@ void on_register_button_clicked() {
         return;
     }
 
+    printf("DEBUG::: Register/Register button clicked, validations approved.");
+
     // Send registration data to the server
     int status = register_user(sock, username_register, password_register);
 
@@ -104,7 +120,8 @@ void on_register_button_clicked() {
     case 0:
         g_print("Registration successful. Redirecting to login page...\n");
         sleep(1);
-        // Hide and show windows
+        gtk_widget_hide (GTK_WIDGET(RegisterPage));
+        gtk_widget_hide (GTK_WIDGET(LoginPage));
         break;
     case 1:
         g_print("Failed to send register request.\n");
@@ -118,7 +135,7 @@ void on_register_button_clicked() {
     }
 }
 
-void on_sign_up_back_clicked(GtkButton *button, gpointer user_data) {
+void on_register_back_clicked(GtkButton *button, gpointer user_data) {
     gtk_widget_hide (GTK_WIDGET(RegisterPage));
  	gtk_widget_show (GTK_WIDGET(WelcomePage));
 }
@@ -134,10 +151,14 @@ void on_login_button_clicked() {
     const char *username_login = gtk_entry_get_text(GTK_ENTRY(entry_username_login));
     const char *password_login = gtk_entry_get_text(GTK_ENTRY(entry_password_login));
 
+    printf("DEBUG::: Login/Login button clicked, credentials taken.");
+
     if (strlen(username_login) == 0 || strlen(password_login) == 0) {
         g_print("All fields must be filled out.\n");
         return;
     }
+
+    printf("DEBUG::: Login/Login button clicked, validations approved.");
 
     // Send login data to the server
     int status = login_user(sock, username_login, password_login);

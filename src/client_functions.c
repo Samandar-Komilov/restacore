@@ -70,6 +70,8 @@ int register_user(int sock_fd, const char *username, const char *password) {
         return 1;
     }
 
+    printf("DEBUG::: Register/Register button clicked, data sent.");
+
     // Receive the server's response
     char response[512];
     int bytes_received = recv(sock_fd, response, sizeof(response) - 1, 0);
@@ -99,6 +101,8 @@ int login_user(int sock_fd, const char *username, const char *password) {
         perror("Failed to send login request");
         return 1;
     }
+
+    printf("DEBUG::: Login/Login button clicked, message sent.");
 
     // Receive the server's response
     char response[512];

@@ -56,3 +56,4 @@ src/db/
 data/
 .vscode/
 build/
+.env

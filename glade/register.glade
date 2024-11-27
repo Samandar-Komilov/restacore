@@ -190,7 +190,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="register_button1">
+          <object class="GtkButton" id="login_button">
             <property name="label" translatable="yes">Login</property>
             <property name="width-request">200</property>
             <property name="height-request">40</property>

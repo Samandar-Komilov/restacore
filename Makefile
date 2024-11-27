@@ -16,10 +16,10 @@ server: $(BUILD_DIR)/server
 client: $(BUILD_DIR)/client
 
 $(BUILD_DIR)/server: src/server.c src/server_functions.c src/utils.h src/server_functions.h # src/gui/*.h
-	$(CC) src/server.c src/server_functions.c -o $(BUILD_DIR)/server $(POSTGRES_FLAGS) $(LPQ_FLAGS) $(CFLAGS)
+	gcc src/server.c src/server_functions.c -o build/server -I/usr/include/postgresql -L/usr/lib -lpq -lpthread
 
 $(BUILD_DIR)/client: src/client.c src/client_functions.c src/utils.h
-	gcc src/server.c src/server_functions.c -o build/server -I/usr/include/postgresql -L/usr/lib -lpq -lpthread
+	$(CC) src/client.c src/client_functions.c -o $(BUILD_DIR)/client $(CFLAGS) $(GTK_CFLAGS) $(GTK_LIBS)
 
 clean:
 	rm -rf $(BUILD_DIR)/*

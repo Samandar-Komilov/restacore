@@ -104,7 +104,7 @@ void handle_login(const char *data, int client_fd){
     }
 
     // Prepare a parameterized SQL query to prevent SQL injection
-    const char *query = "SELECT customerID FROM customers WHERE username = $1 AND password = $2";
+    const char *query = "SELECT id FROM \"User\" WHERE username = $1 AND password = $2";
     const char *param_values[2] = {username, password};
 
     // Execute the query with parameters
@@ -171,7 +171,7 @@ void handle_register(const char* data, int client_fd) {
     }
 
     // Insert the user into the database
-    const char *query = "INSERT INTO customers (username, password, role, created_at) VALUES ($1, $2, $3, $4) RETURNING customerID";
+    const char *query = "INSERT INTO \"User\" (username, password, role, created_at) VALUES ($1, $2, $3, $4) RETURNING id";
     const char *param_values[4] = { username, password, default_role, created_at };
 
     PGresult *res = PQexecParams(conn, query, 4, NULL, param_values, NULL, NULL, 0);
@@ -223,7 +223,7 @@ void add_user(PGconn *conn, const char *username, const char *password, const ch
 
 
 void fetch_users(PGconn *conn) {
-    PGresult *res = PQexec(conn, "SELECT id, username, role_id FROM \"User\";");
+    PGresult *res = PQexec(conn, "SELECT id, username, role FROM \"User\";");
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "SELECT failed: %s\n", PQerrorMessage(conn));
