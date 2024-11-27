@@ -57,3 +57,4 @@ data/
 .vscode/
 build/
 .env
+logs/

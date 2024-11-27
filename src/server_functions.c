@@ -22,7 +22,16 @@ void handle_register(const char *data, int client_fd);
 --- Database connection
 */
 PGconn *connect_to_db(){
-    const char *conninfo = "dbname=bistrosync_db user=postgres password=voidpostgres hostaddr=127.0.0.1 port=5432";
+    const char* DB_NAME = getenv("DB_NAME");
+    const char* DB_USER = getenv("DB_USER");
+    const char* DB_PASSWORD = getenv("DB_PASSWORD");
+    const char* DB_HOST = getenv("DB_HOST");
+    const char* DB_PORT = getenv("DB_PORT");
+    char conninfo[256];
+
+    printf(">>> %s %s %s %s %s", DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT);
+
+    sprintf(conninfo, "dbname=%s user=%s password=%s hostaddr=%s port=%s", DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT);
 
     PGconn *conn = PQconnectdb(conninfo);
     if (PQstatus(conn) != CONNECTION_OK) {

@@ -10,6 +10,7 @@
 
 #include "utils.h"
 #include "client_functions.h"
+#include "logger/logger.h"
 
 // Global variables
 int sock;
@@ -36,6 +37,9 @@ void on_login_back_clicked();
 
 int main(int argc, char* argv[]){
     gtk_init(&argc, &argv);
+    init_config();
+
+    set_log_file("logs/server.log");
 
     auth_builder = gtk_builder_new_from_file("glade/register.glade");
     WelcomePage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "welcome_page"));
@@ -135,7 +139,7 @@ void on_register_button_clicked() {
     }
 }
 
-void on_register_back_clicked(GtkButton *button, gpointer user_data) {
+void on_register_back_clicked() {
     gtk_widget_hide (GTK_WIDGET(RegisterPage));
  	gtk_widget_show (GTK_WIDGET(WelcomePage));
 }

@@ -9,12 +9,21 @@
 #include <pthread.h>
 #include <libpq-fe.h>
 #include <time.h>
+#include <errno.h>
 
 #include "utils.h"
 #include "server_functions.h"
+#include "logger/logger.h"
 
 
 int main() {
+    init_config();
+    printf(">Server Address: %s\n", SERVER_ADDRESS);
+    printf(">Port: %d\n", PORT);
+    printf(">Max Buffer: %d\n", MAX_BUFFER);
+
+    set_log_file("logs/server.log");
+
     int server_fd, client_fd;
     struct sockaddr_in server_addr, client_addr;
     socklen_t addr_size;
@@ -25,6 +34,7 @@ int main() {
 
     if (server_fd == -1) {
         perror("Socket creation failed");
+        logger("ERROR", "Socket creation failed: %s (errno: %d)", strerror(errno), errno);
         exit(EXIT_FAILURE);
     }
 
@@ -34,6 +44,7 @@ int main() {
     server_addr.sin_addr.s_addr = inet_addr(SERVER_ADDRESS);
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Bind failed");
+        logger("ERROR", "Bind failed: %s (errno: %d)", strerror(errno), errno);
         exit(EXIT_FAILURE);
     }
 
@@ -43,6 +54,7 @@ int main() {
     }
 
     printf("[LISTENING] Port Number: %d\n", PORT);
+    logger("INFO", "Port Number: %d", PORT);
 
     while (1) {
         addr_size = sizeof(client_addr);
@@ -58,6 +70,7 @@ int main() {
         inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
 
         printf("[CONNECTED] New connection from %s\n", client_ip);
+        logger("[INFO]", "Bind failed");
 
         // Allocate memory for client_fd to pass it to the thread
         int* client_fd_copy = (int*)malloc(sizeof(int));

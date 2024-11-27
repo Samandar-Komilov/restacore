@@ -2,11 +2,20 @@
 #include <stdlib.h>
 #include <time.h>
 
-#ifndef UTILS_H
+#include "dotenv/dotenv.h"
 
-#define PORT 8088
-#define MAX_BUFFER 1024
-#define SERVER_ADDRESS "192.168.0.105"
+#ifndef UTILS_H
+#define UTILS_H
+
+extern const char* SERVER_ADDRESS;
+extern int PORT;
+extern int MAX_BUFFER;
+
+void init_config();
+
+// #define PORT 8088
+// #define MAX_BUFFER 1024
+// #define SERVER_ADDRESS "192.168.0.105"
 
 
 typedef struct {

@@ -1,7 +1,6 @@
 #ifndef LOGGER_H
 
-#define LOG_FILE "server.log"
-
-void logger(const char* log_level, const char* message);
+void set_log_file(const char *log_file_path);
+void logger(const char* log_level, const char* formatted_message, ...);
 
 #endif
