@@ -34,6 +34,7 @@ int connect_to_server(){
     while (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("Connection failed. Retrying...");
         sleep(1); // Wait for a while before retrying
+        printf("Cennection failed. Retrying...");
     }
 
     printf("Connection established.\n");
@@ -91,7 +92,7 @@ int register_user(int sock_fd, const char *username, const char *password) {
 int login_user(int sock_fd, const char *username, const char *password) {
     // Construct the login message
     char message[512];
-    snprintf(message, sizeof(message), "CLIENT_LOGIN|%s|%s", username, password);
+    snprintf(message, sizeof(message), "LOGIN|%s|%s", username, password);
 
     // Send the login request to the server
     if (send(sock_fd, message, strlen(message), 0) == -1) {

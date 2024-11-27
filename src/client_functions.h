@@ -3,7 +3,7 @@
 /* General Handlers */
 int connect_to_server();
 int send_to_server(int sock, const char* data);
-void disconnect_from_server(int sock);
+int disconnect_from_server(int sock);
 
 /* User Auth handlers */
 int register_user(int sock_fd, const char *username, const char *password);

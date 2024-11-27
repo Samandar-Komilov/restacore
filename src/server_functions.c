@@ -1,9 +1,9 @@
-#include <sys/types.h>      // For data types like `socklen_t`
-#include <sys/socket.h>     // For socket-related functions like `getpeername`
-#include <netinet/in.h>     // For `struct sockaddr_in` and `AF_INET`
-#include <arpa/inet.h>      // For `inet_ntop` and `INET_ADDRSTRLEN`
-#include <unistd.h>         // For `recv` and `close`
-#include <string.h>         // For `memset`
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +12,10 @@
 
 #include "utils.h"
 #include "server_functions.h"
+
+
+void handle_login(const char *data, int client_fd);
+void handle_register(const char *data, int client_fd);
 
 
 /* 
@@ -85,7 +89,7 @@ void *handle_command(void *client_fd_ptr){
 
 void handle_login(const char *data, int client_fd){
     char username[100], password[100];
-    if (sscanf(data, "CLIENT_LOGIN|%99[^|]|%99[^|]", username, password) != 2) {
+    if (sscanf(data, "LOGIN|%99[^|]|%99[^|]", username, password) != 2) {
         printf("LOGIN_DATA: [%s][%s]\n", username, password);
         fprintf(stderr, "Invalid login data format: %s\n", data);
         return;

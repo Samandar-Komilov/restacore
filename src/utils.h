@@ -6,7 +6,7 @@
 
 #define PORT 8080
 #define MAX_BUFFER 1024
-#define SERVER_ADDRESS "192.168.43.154"
+#define SERVER_ADDRESS "192.168.0.105"
 
 
 typedef struct {

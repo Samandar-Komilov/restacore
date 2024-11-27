@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -pthread
-GTK_CFLAGS = $(shell pkg-config --cflags gtk+-3.0)
-GTK_LIBS = $(shell pkg-config --libs gtk+-3.0)
+GTK_CFLAGS = $(shell pkg-config gtk+-3.0 --cflags --libs)
+GTK_LIBS = $(shell pkg-config gtk+-3.0 --libs)
 BUILD_DIR = build
 
 all: server client
