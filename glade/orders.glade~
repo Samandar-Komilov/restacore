@@ -79,19 +79,43 @@
           </packing>
         </child>
         <child>
-          <object class="GtkTreeView">
-            <property name="width-request">100</property>
-            <property name="height-request">80</property>
+          <object class="GtkLabel">
+            <property name="name">orders_label</property>
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Orders List</property>
+            <attributes>
+              <attribute name="foreground" value="#1a1a5f5fb4b4"/>
+              <attribute name="size" value="30000"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">600</property>
+            <property name="y">70</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="width-request">1100</property>
+            <property name="height-request">600</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
-            <property name="model">liststore1</property>
-            <child internal-child="selection">
-              <object class="GtkTreeSelection"/>
+            <property name="shadow-type">in</property>
+            <child>
+              <object class="GtkTreeView" id="orders_tv">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="model">liststore1</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
+              </object>
             </child>
           </object>
           <packing>
-            <property name="x">405</property>
-            <property name="y">165</property>
+            <property name="x">150</property>
+            <property name="y">150</property>
           </packing>
         </child>
       </object>

@@ -2,7 +2,7 @@
 <!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkListStore" id="order_liststore">
+  <object class="GtkListStore" id="order_item_liststore">
     <columns>
       <!-- column-name id -->
       <column type="guint"/>
@@ -81,17 +81,17 @@
         <child>
           <object class="GtkLabel">
             <property name="name">orders_label</property>
-            <property name="width-request">200</property>
+            <property name="width-request">300</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">Orders List</property>
+            <property name="label" translatable="yes">Order Items List</property>
             <attributes>
               <attribute name="foreground" value="#1a1a5f5fb4b4"/>
               <attribute name="size" value="30000"/>
             </attributes>
           </object>
           <packing>
-            <property name="x">600</property>
+            <property name="x">550</property>
             <property name="y">70</property>
           </packing>
         </child>
@@ -106,7 +106,7 @@
               <object class="GtkTreeView" id="orders_tv">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="model">order_liststore</property>
+                <property name="model">order_item_liststore</property>
                 <child internal-child="selection">
                   <object class="GtkTreeSelection"/>
                 </child>
