@@ -2,21 +2,33 @@
 <!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkListStore" id="order_item_liststore">
+  <object class="GtkListStore" id="customer_liststore">
     <columns>
       <!-- column-name id -->
       <column type="guint"/>
-      <!-- column-name name -->
-      <column type="gchar"/>
+      <!-- column-name first_name -->
+      <column type="gchararray"/>
+      <!-- column-name last_name -->
+      <column type="gchararray"/>
+      <!-- column-name phone_number -->
+      <column type="gchararray"/>
+      <!-- column-name visited_at -->
+      <column type="gchararray"/>
     </columns>
     <data>
       <row>
         <col id="0">1</col>
-        <col id="1"/>
+        <col id="1" translatable="yes"/>
+        <col id="2" translatable="yes"/>
+        <col id="3" translatable="yes"/>
+        <col id="4" translatable="yes"/>
       </row>
       <row>
         <col id="0">2</col>
-        <col id="1"/>
+        <col id="1" translatable="yes"/>
+        <col id="2" translatable="yes"/>
+        <col id="3" translatable="yes"/>
+        <col id="4" translatable="yes"/>
       </row>
     </data>
   </object>
@@ -79,19 +91,19 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="orders_items_label">
-            <property name="name">order_items_label</property>
-            <property name="width-request">300</property>
+          <object class="GtkLabel" id="customers_label">
+            <property name="name">customers_label</property>
+            <property name="width-request">280</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">Order Items List</property>
+            <property name="label" translatable="yes">Customers List</property>
             <attributes>
               <attribute name="foreground" value="#1a1a5f5fb4b4"/>
               <attribute name="size" value="30000"/>
             </attributes>
           </object>
           <packing>
-            <property name="x">550</property>
+            <property name="x">560</property>
             <property name="y">70</property>
           </packing>
         </child>
@@ -103,10 +115,10 @@
             <property name="can-focus">True</property>
             <property name="shadow-type">in</property>
             <child>
-              <object class="GtkTreeView" id="orders_tv">
+              <object class="GtkTreeView" id="customers_tv">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="model">order_item_liststore</property>
+                <property name="model">customer_liststore</property>
                 <child internal-child="selection">
                   <object class="GtkTreeSelection"/>
                 </child>

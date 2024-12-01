@@ -8,15 +8,19 @@
       <column type="guint"/>
       <!-- column-name name -->
       <column type="gchar"/>
+      <!-- column-name price -->
+      <column type="gint"/>
     </columns>
     <data>
       <row>
         <col id="0">1</col>
         <col id="1"/>
+        <col id="2">0</col>
       </row>
       <row>
         <col id="0">2</col>
         <col id="1"/>
+        <col id="2">0</col>
       </row>
     </data>
   </object>
@@ -103,7 +107,7 @@
             <property name="can-focus">True</property>
             <property name="shadow-type">in</property>
             <child>
-              <object class="GtkTreeView" id="orders_tv">
+              <object class="GtkTreeView" id="products_tv">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="model">product_liststore</property>
@@ -116,6 +120,19 @@
           <packing>
             <property name="x">150</property>
             <property name="y">150</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="active_sessions_btn">
+            <property name="label" translatable="yes">Active Sessions</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="x">1200</property>
+            <property name="y">40</property>
           </packing>
         </child>
       </object>
