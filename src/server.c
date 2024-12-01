@@ -17,11 +17,8 @@
 
 
 int main() {
+    /* dotenv and logger initialization */
     init_config();
-    printf(">Server Address: %s\n", SERVER_ADDRESS);
-    printf(">Port: %d\n", PORT);
-    printf(">Max Buffer: %d\n", MAX_BUFFER);
-
     set_log_file("logs/server.log");
 
     int server_fd, client_fd;
@@ -29,7 +26,6 @@ int main() {
     socklen_t addr_size;
     char buffer[1024];
 
-    // Server socket
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (server_fd == -1) {
@@ -40,8 +36,8 @@ int main() {
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);
-    // server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_addr.s_addr = inet_addr(SERVER_ADDRESS);
+
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Bind failed");
         logger("ERROR", "Bind failed: %s (errno: %d)", strerror(errno), errno);
@@ -54,7 +50,7 @@ int main() {
     }
 
     printf("[LISTENING] Port Number: %d\n", PORT);
-    logger("INFO", "Port Number: %d", PORT);
+    logger("INFO", "Listening on Port Number: %d", PORT);
 
     while (1) {
         addr_size = sizeof(client_addr);
@@ -65,14 +61,13 @@ int main() {
             continue;
         }
         
-        // Convert the client's IP address from binary to a readable string
+        /* Convert the client's IP address from binary to a readable string */ 
         char client_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
 
         printf("[CONNECTED] New connection from %s\n", client_ip);
-        logger("[INFO]", "Bind failed");
+        logger("INFO", "[CONNECTED] New connection from %s\n", client_ip);
 
-        // Allocate memory for client_fd to pass it to the thread
         int* client_fd_copy = (int*)malloc(sizeof(int));
         if (client_fd_copy == NULL) {
             perror("Failed to allocate memory");
