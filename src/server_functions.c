@@ -12,6 +12,7 @@
 
 #include "utils.h"
 #include "server_functions.h"
+#include "logger/logger.h"
 
 
 void handle_login(const char *data, int client_fd);
@@ -22,6 +23,8 @@ void handle_register(const char *data, int client_fd);
 --- Database connection
 */
 PGconn *connect_to_db(){
+    set_log_file("logs/server.log");
+
     const char* DB_NAME = getenv("DB_NAME");
     const char* DB_USER = getenv("DB_USER");
     const char* DB_PASSWORD = getenv("DB_PASSWORD");
@@ -58,6 +61,8 @@ void disconnect_db(PGconn *conn) {
 --- General Handler for commands
  */
 void *handle_command(void *client_fd_ptr){
+    set_log_file("logs/server.log");
+
     int client_fd = *((int*)client_fd_ptr);
     free(client_fd_ptr); 
     char buffer[MAX_BUFFER];
@@ -97,14 +102,18 @@ void *handle_command(void *client_fd_ptr){
 /* ******* USERS AUTH ******* */
 
 void handle_login(const char *data, int client_fd){
+    set_log_file("logs/server.log");
+
     char username[100], password[100];
     if (sscanf(data, "LOGIN|%99[^|]|%99[^|]", username, password) != 2) {
-        printf("LOGIN_DATA: [%s][%s]\n", username, password);
+        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
+        logger("ERROR", "Invalid login data format: %s", data);
         fprintf(stderr, "Invalid login data format: %s\n", data);
         return;
     }
 
-    printf("Received login request with username: %s, password: %s\n", username, password);
+    // printf("Received login request with username: %s, password: %s\n", username, password);
+    logger("INFO", "Received login request with username: %s, password: %s", username, password);
 
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
@@ -113,7 +122,7 @@ void handle_login(const char *data, int client_fd){
     }
 
     // Prepare a parameterized SQL query to prevent SQL injection
-    const char *query = "SELECT id FROM \"User\" WHERE username = $1 AND password = $2";
+    const char *query = "SELECT id, username, password, role, created_at, first_name, last_name, email, phone_number FROM \"User\" WHERE username = $1 AND password = $2";
     const char *param_values[2] = {username, password};
 
     // Execute the query with parameters
@@ -134,17 +143,31 @@ void handle_login(const char *data, int client_fd){
         const char *password_str = PQgetvalue(res, 0, 2);
         const char *role_str = PQgetvalue(res, 0, 3);
         const char *created_at_str = PQgetvalue(res, 0, 4);
+        const char *first_name_str = PQgetvalue(res, 0, 5);
+        const char *last_name_str = PQgetvalue(res, 0, 6);
+        const char *email_str = PQgetvalue(res, 0, 7);
+        const char *phone_number_str = PQgetvalue(res, 0, 8);
+
+        username_str = (username_str && *username_str) ? username_str : "undefined";
+        password_str = (password_str && *password_str) ? password_str : "undefined";
+        role_str = (role_str && *role_str) ? role_str : "undefined";
+        created_at_str = (created_at_str && *created_at_str) ? created_at_str : "undefined";
+        first_name_str = (first_name_str && *first_name_str) ? first_name_str : "undefined";
+        last_name_str = (last_name_str && *last_name_str) ? last_name_str : "undefined";
+        email_str = (email_str && *email_str) ? email_str : "undefined";
+        phone_number_str = (phone_number_str && *phone_number_str) ? phone_number_str : "undefined";
 
         char response[512];
-        snprintf(response, sizeof(response), "true|%s|%s|%s|%s|%s", 
-                 client_id_str, username_str, password_str, role_str, created_at_str);
+        snprintf(response, sizeof(response), "true|%s|%s|%s|%s|%s|%s|%s|%s|%s", 
+                 client_id_str, username_str, password_str, role_str, created_at_str, first_name_str, last_name_str, email_str, phone_number_str);
 
         send(client_fd, response, strlen(response), 0);
-        printf("[LOGIN_SUCCESS] Sent user credentials to client: %s\n", response);
+        // printf("[LOGIN_SUCCESS] Sent user credentials to client: %s\n", response);
+        logger("INFO", "Sent user credentials to client: %s", response);
     } else {
         char response[] = "false";
         send(client_fd, response, strlen(response), 0);
-        printf("[LOGIN_FAILURE] Sent 'false' response to client\n");
+        logger("INFO", "Login failed - sent 'false' response to client");
     }
 
     // Clean up
@@ -153,6 +176,8 @@ void handle_login(const char *data, int client_fd){
 }
 
 void handle_register(const char* data, int client_fd) {
+    set_log_file("logs/server.log");
+
     char username[255], password[255];
     const char *default_role = "user";
     char created_at[64];

@@ -8,11 +8,14 @@
 
 #include "utils.h"
 #include "client_functions.h"
+#include "logger/logger.h"
 
 char login_response[512];
 
 
 int connect_to_server(){
+    set_log_file("logs/client.log");
+
     struct sockaddr_in serv_addr;
     int sock;
 
@@ -44,6 +47,8 @@ int connect_to_server(){
 }
 
 int send_to_server(int sock, const char *data) {
+    set_log_file("logs/client.log");
+
     size_t data_len = strlen(data);
     if (send(sock, data, data_len, 0) != data_len) {
         fprintf(stderr, "Error sending data.\n");
@@ -62,6 +67,8 @@ int disconnect_from_server(int sock) {
 }
 
 int register_user(int sock_fd, const char *username, const char *password) {
+    set_log_file("logs/client.log");
+
     char message[512];
     snprintf(message, sizeof(message), "REGISTER|%s|%s", username, password);
 
@@ -90,27 +97,33 @@ int register_user(int sock_fd, const char *username, const char *password) {
 
 
 char* login_user(int sock_fd, const char *username, const char *password) {
+    set_log_file("logs/client.log");
+
     char message[512];
     snprintf(message, sizeof(message), "LOGIN|%s|%s", username, password);
+    logger("DEBUG", "Sending login request: %s", message);
 
     if (send(sock_fd, message, strlen(message), 0) == -1) {
         perror("Failed to send login request");
         return "1";
     }
 
-    printf("DEBUG::: Login/Login button clicked, message sent.");
+    logger("INFO", "Sent login request: %s", message);
 
     // char response[512];
     int bytes_received = recv(sock_fd, login_response, sizeof(login_response) - 1, 0);
     if (bytes_received <= 0) {
         perror("Failed to receive login response");
+        logger("ERROR", "Failed to receive login response");
         return "2";
     }
     login_response[bytes_received] = '\0';
+    logger("INFO", "Received login response: %s", login_response);
 
     if (strncmp(login_response, "true", 4) == 0) {
-        printf("Login successful! Assigned customerID: %s\n", login_response + 5);
-        printf("%s\n",login_response);
+        // printf("Login successful! Assigned customerID: %s\n", login_response + 5);
+        // printf("%s\n",login_response);
+        logger("INFO", "Login successful! Assigned customerID: %s\n", login_response + 5);
         return login_response;
     }
     printf("Login failed: Invalid username or password.\n");
