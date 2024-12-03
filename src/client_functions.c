@@ -179,6 +179,32 @@ int add_product(int sock_fd, const char *name, const int price) {
     return 0;
 }
 
+int update_product(int sock_fd, int id, const char *name, const int price) {
+    char message[512];
+    snprintf(message, sizeof(message), "UPDATE_PRODUCT|%d|%s|%d", id, name, price);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send add_product request");
+        printf("Update product request failed.\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+int delete_product(int sock_fd, int id) {
+    char message[512];
+    snprintf(message, sizeof(message), "DELETE_PRODUCT|%d", id);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send delete_product request");
+        printf("Delete product request failed.\n");
+        return 1;
+    }
+
+    return 0;
+}
+
 
 
 /* -------------- CUSTOMERS FUNCTIONS -------------- */

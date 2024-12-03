@@ -25,7 +25,7 @@ GtkBuilder *profile_builder;
 
 GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *IncorrectPassword;
 GtkWidget *MainPage;
-GtkWidget *ProductListPage, *AddProductPopup;
+GtkWidget *ProductListPage, *AddProductPopup, *UpdateDeleteProductPopup;
 GtkWidget *CustomersListPage;
 GtkWidget *UsersListPage;
 GtkWidget *ProfilePage;
@@ -48,6 +48,10 @@ void setup_products_treeview(GtkTreeView *treeview, char *response);
 void on_add_product_btn_clicked();
 void on_save_product_btn_clicked();
 void on_cancel_product_btn_clicked();
+void on_product_row_double_clicked();
+void on_update_product_btn_clicked();
+void on_delete_product_btn_clicked();
+void on_cancel2_product_btn_clicked();
 
 void on_customers_btn_clicked();
 void on_customers_back_btn_clicked();
@@ -84,6 +88,7 @@ int main(int argc, char* argv[]){
 
     ProductListPage = GTK_WIDGET(gtk_builder_get_object(products_builder, "ProductListPage"));
     AddProductPopup = GTK_WIDGET(gtk_builder_get_object(products_builder, "AddProductPopup"));
+    UpdateDeleteProductPopup = GTK_WIDGET(gtk_builder_get_object(products_builder, "UpdateDeleteProductPopup"));
 
     CustomersListPage = GTK_WIDGET(gtk_builder_get_object(customers_builder, "MainPage"));
 
@@ -97,6 +102,7 @@ int main(int argc, char* argv[]){
     g_signal_connect(MainPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProductListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(AddProductPopup, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(UpdateDeleteProductPopup, "destroy", G_CALLBACK(on_cancel2_product_btn_clicked), NULL);
 
     g_signal_connect(CustomersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
@@ -143,13 +149,20 @@ int main(int argc, char* argv[]){
     GtkWidget *add_product_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "add_product_btn"));
     GtkWidget *active_sessions_btn_products = GTK_WIDGET(gtk_builder_get_object(products_builder, "active_sessions_btn"));
     g_signal_connect(add_product_btn, "clicked", G_CALLBACK(on_add_product_btn_clicked), NULL);
+    g_signal_connect(products_tv, "row-activated", G_CALLBACK(on_product_row_double_clicked), NULL);
 
-    // Add product Popup data
 
+    // CRUD product Popup data
     GtkWidget *create_product_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_save_btn"));
     GtkWidget *create_product_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_cancel_btn"));
+    GtkWidget *update_delete_product_popup_apply_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "update_delete_product_popup_apply_btn"));
+    GtkWidget *update_delete_product_popup_delete_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "update_delete_product_popup_delete_btn"));
+    GtkWidget *update_delete_product_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "update_delete_product_popup_cancel_btn"));
     g_signal_connect(create_product_popup_save_btn, "clicked", G_CALLBACK(on_save_product_btn_clicked), NULL);
     g_signal_connect(create_product_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel_product_btn_clicked), NULL);
+    g_signal_connect(update_delete_product_popup_apply_btn, "clicked", G_CALLBACK(on_update_product_btn_clicked), NULL);
+    g_signal_connect(update_delete_product_popup_delete_btn, "clicked", G_CALLBACK(on_delete_product_btn_clicked), NULL);
+    g_signal_connect(update_delete_product_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel2_product_btn_clicked), NULL);
     
 
     // Customers Page data
@@ -431,6 +444,104 @@ void on_save_product_btn_clicked(){
 
 void on_cancel_product_btn_clicked(){
     gtk_widget_hide(AddProductPopup);
+}
+
+void on_product_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data){
+    // GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
+    // GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(products_builder, "product_liststore"));
+    GtkListStore *liststore = GTK_LIST_STORE(gtk_tree_view_get_model(tree_view));
+    GtkTreeIter iter;
+
+    // Get the selected row data
+    if (gtk_tree_model_get_iter(GTK_TREE_MODEL(liststore), &iter, path)) {
+        guint id;
+        gchar *name;
+        gint price;
+
+        // Retrieve data from the selected row
+        gtk_tree_model_get(GTK_TREE_MODEL(liststore), &iter,
+                           0, &id,
+                           1, &name,
+                           2, &price,
+                           -1);
+
+        // Set the data in the entry fields of the popup window
+        GtkWidget *id_label = GTK_WIDGET(gtk_builder_get_object(products_builder, "update_delete_product_popup_id"));
+        GtkWidget *name_entry = GTK_WIDGET(gtk_builder_get_object(products_builder, "update_delete_product_popup_name"));
+        GtkWidget *price_entry = GTK_WIDGET(gtk_builder_get_object(products_builder, "update_delete_product_popup_price"));
+
+        gtk_label_set_text(GTK_LABEL(id_label), g_strdup_printf("%d", id));
+        gtk_entry_set_text(GTK_ENTRY(name_entry), name);
+        gtk_entry_set_text(GTK_ENTRY(price_entry), g_strdup_printf("%d", price));
+
+        // Show the update/delete popup window
+        gtk_widget_show(UpdateDeleteProductPopup);
+
+        // Free the allocated memory for name
+        g_free(name);
+    }
+    gtk_widget_show(UpdateDeleteProductPopup);
+}
+
+void on_update_product_btn_clicked(){
+    GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(products_builder, "update_delete_product_popup_id"));
+    GtkEntry *name_entry = GTK_ENTRY(gtk_builder_get_object(products_builder, "update_delete_product_popup_name"));
+    GtkEntry *price_entry = GTK_ENTRY(gtk_builder_get_object(products_builder, "update_delete_product_popup_price"));
+
+    const char *id_str = gtk_label_get_text(id_label);
+    const char *name = gtk_entry_get_text(name_entry);
+    const char *price_str = gtk_entry_get_text(price_entry);
+
+    int id = atoi(id_str);
+    int price = atoi(price_str);
+
+    if (strlen(name) == 0 || price <= 0) {
+        g_print("Invalid input: Name cannot be empty and Price must be greater than 0.\n");
+        return;
+    }
+
+    int result = update_product(sock, id, name, price);
+
+    if (result == 0) {
+        g_print("Product added successfully: %d %s, %d\n", id, name, price);
+    } else {
+        g_print("Failed to update product.\n");
+    }
+
+    // Refreshing table content
+    GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
+    char *response = get_products(sock);
+    setup_products_treeview(products_tv, response);
+
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(products_builder, "UpdateDeleteProductPopup"));
+    gtk_widget_hide(popup);
+}
+
+void on_delete_product_btn_clicked(){
+    GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(products_builder, "update_delete_product_popup_id"));
+    const char *id_str = gtk_label_get_text(id_label);
+
+    int id = atoi(id_str);
+
+    int result = delete_product(sock, id);
+
+    if (result == 0) {
+        g_print("Product added successfully: %d\n", id);
+    } else {
+        g_print("Failed to update product.\n");
+    }
+
+    // Refreshing table content
+    GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
+    char *response = get_products(sock);
+    setup_products_treeview(products_tv, response);
+
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(products_builder, "UpdateDeleteProductPopup"));
+    gtk_widget_hide(popup);
+}
+
+void on_cancel2_product_btn_clicked(){
+    gtk_widget_hide(UpdateDeleteProductPopup);
 }
 
 // void delete_product(GtkButton *button, gpointer user_data) {

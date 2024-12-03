@@ -17,6 +17,8 @@ void add_user(PGconn *conn, const char *username, const char *password, const ch
 /* Product handlers */
 void fetch_products(int sock);
 void add_product(const char *data, int sock);
+void update_product(const char *data, int sock);
+void delete_product(const char *data, int sock);
 
 /* Customer handlers */
 void fetch_customers(int sock);

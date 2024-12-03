@@ -111,6 +111,12 @@ void *handle_command(void *client_fd_ptr){
         if (strstr(buffer, "CREATE_PRODUCT|") != NULL) {
             add_product(buffer, client_fd);
         }
+        if (strstr(buffer, "UPDATE_PRODUCT|") != NULL) {
+            update_product(buffer, client_fd);
+        }
+        if (strstr(buffer, "DELETE_PRODUCT|") != NULL) {
+            delete_product(buffer, client_fd);
+        }
     }
 }
 
@@ -350,6 +356,76 @@ void add_product(const char *data, int sock) {
         return;
     }
     printf("Product added successfully.\n");
+    PQclear(res);
+}
+
+void update_product(const char *data, int sock) {
+
+    char name[255], priceStr[10], idStr[10];
+    if (sscanf(data, "UPDATE_PRODUCT|%9[^|]|%254[^|]|%9[^|]", idStr, name, priceStr) != 3) {
+        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
+        logger("ERROR", "Invalid product update data format: %s", data);
+        fprintf(stderr, "Invalid product update data format: %s\n", data);
+        return;
+    }
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    int id = atoi(idStr);
+    int price = atoi(priceStr);
+
+    printf("SERVER Update function is working.\n");
+
+    char query[1024];
+    snprintf(query, sizeof(query),
+         "UPDATE \"Product\" SET name = '%s', price = %d WHERE id = %d;",
+         name, price, id);
+
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Update failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    printf("Product updated successfully.\n");
+    PQclear(res);
+}
+
+void delete_product(const char *data, int sock) {
+    char idStr[10];
+    if (sscanf(data, "DELETE_PRODUCT|%9[^|]", idStr) != 1) {
+        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
+        logger("ERROR", "Invalid product delete data format: %s", data);
+        fprintf(stderr, "Invalid product delete data format: %s\n", data);
+        return;
+    }
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    int id = atoi(idStr);
+
+    char query[1024];
+    snprintf(query, sizeof(query),
+         "DELETE FROM \"Product\" WHERE id = %d;",
+         id);
+
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Delete failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    printf("Product deleted successfully.\n");
     PQclear(res);
 }
 
