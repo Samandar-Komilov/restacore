@@ -44,9 +44,7 @@ void on_orders_btn_clicked();
 
 void on_products_btn_clicked();
 void on_products_back_clicked();
-void setup_products_treeview(GtkTreeView *products_tv);
-void add_product(GtkButton *button, gpointer user_data);
-void delete_product(GtkButton *button, gpointer user_data);
+void setup_products_treeview(GtkTreeView *treeview, char *response);
 
 void on_customers_btn_clicked();
 void on_customers_back_btn_clicked();
@@ -317,31 +315,71 @@ void on_products_btn_clicked(){
 
     GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
 
+    GtkCellRenderer *renderer;
+
+    // ID Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(products_tv),
+                                                -1, "ID", renderer, "text", 0, NULL);
+
+    // Name Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(products_tv),
+                                                -1, "Name", renderer, "text", 1, NULL);
+
+    // Price Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(products_tv),
+                                                -1, "Price", renderer, "text", 2, NULL);
+                                                
+    GtkTreeViewColumn *col_id = gtk_tree_view_get_column(products_tv, 0);
+    GtkTreeViewColumn *col_name = gtk_tree_view_get_column(products_tv, 1);
+    GtkTreeViewColumn *col_price = gtk_tree_view_get_column(products_tv, 2);
+
+    gtk_tree_view_column_set_fixed_width(col_id, 200);   // Set width for ID column
+    gtk_tree_view_column_set_fixed_width(col_name, 300); // Set width for Name column
+    gtk_tree_view_column_set_fixed_width(col_price, 300); // Set width for Price column
+
     char *response = get_products(sock);
 
     printf("CLIENT.C: %s\n", response);
-    setup_products_treeview(products_tv);
+    setup_products_treeview(products_tv, response);
 }
 
-void setup_products_treeview(GtkTreeView *treeview) {
-    GtkCellRenderer *renderer;
-    GtkTreeViewColumn *column;
+void setup_products_treeview(GtkTreeView *treeview, char *response) {
+    printf("SETUP PRODUCTS TREEVIEW is working.\n");
+    GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(products_builder, "product_liststore"));
+    gtk_list_store_clear(liststore);
 
-    // Column for Product ID
-    renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("ID", renderer, "text", 0, NULL);
-    gtk_tree_view_append_column(treeview, column);
+    char *token = strtok(response, "|"); // skip true
+    token = strtok(NULL, "|");
 
-    // Column for Product Name
-    renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Name", renderer, "text", 1, NULL);
-    gtk_tree_view_append_column(treeview, column);
+    while (token != NULL) {
+        printf("Current token: %s\n", token);
+        guint id;
+        char* name = NULL;
+        gint price;
 
-    // Column for Product Price
-    renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("Price", renderer, "text", 2, NULL);
-    gtk_tree_view_append_column(treeview, column);
+        sscanf(token, "%d,%m[^,],%d", &id, &name, &price);
+
+        printf("ID: %d, Name: %s, Price: %d\n", id, name, price);
+
+        // Add the product to the list store
+        GtkTreeIter iter;
+        gtk_list_store_append(liststore, &iter);
+        gtk_list_store_set(liststore, &iter,
+                           0, id,
+                           1, name,
+                           2, price,
+                           -1);
+
+        g_free(name);
+        token = strtok(NULL, "|");
+    }
 }
+
+
+
 
 // void add_product(GtkButton *button, gpointer user_data) {
 //     GtkListStore *liststore = GTK_LIST_STORE(user_data);

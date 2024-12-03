@@ -107,6 +107,10 @@ void *handle_command(void *client_fd_ptr){
         if (strstr(buffer, "GET_USERS") != NULL) {
             fetch_users(client_fd);
         }
+
+        if (strstr(buffer, "ADD_PRODUCT|") != NULL) {
+            add_product(buffer, client_fd);
+        }
     }
 }
 
@@ -313,6 +317,41 @@ void fetch_products(int client_socket) {
 }
 
 
+
+void add_product(const char *data, int sock) {
+
+    char name[255];
+    char priceStr[10];
+    if (sscanf(data, "ADD_PRODUCT|%254[^|]|%9[^|]", name, priceStr) != 2) {
+        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
+        logger("ERROR", "Invalid login data format: %s", data);
+        fprintf(stderr, "Invalid login data format: %s\n", data);
+        return;
+    }
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    int price = atoi(priceStr);
+
+    char query[1024];
+    snprintf(query, sizeof(query),
+             "INSERT INTO \"Product\" (name, price) VALUES ('%s', %d);",
+             name, price);
+
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    printf("Product added successfully.\n");
+    PQclear(res);
+}
 
 /* ----------- CUSTOMERS FUNCTIONS ------------ */
 

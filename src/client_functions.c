@@ -167,6 +167,18 @@ char* get_products(int sock_fd) {
     return "-1";
 }
 
+int add_product(int sock_fd, const char *name, const int price) {
+    char message[512];
+    snprintf(message, sizeof(message), "CREATE_PRODUCT|%s|%d", name, price);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send add_product request");
+        return 1;
+    }
+
+    return 0;
+}
+
 
 
 /* -------------- CUSTOMERS FUNCTIONS -------------- */
