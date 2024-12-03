@@ -11,7 +11,12 @@
 #include "logger/logger.h"
 
 char login_response[512];
+char get_products_response[5096]; // ~250 products can be returned in a single response
+char get_customers_response[5096]; // ~150 customers can be returned in a single response
+char get_users_response[5096]; // ~100 users can be returned in a single response
 
+
+/* -------------- CLIENT-SERVER INTERACTIONS -------------- */
 
 int connect_to_server(){
     set_log_file("logs/client.log");
@@ -65,6 +70,10 @@ int disconnect_from_server(int sock) {
     printf("Disconnected from the server.\n");
     return 0;
 }
+
+
+
+/* -------------- AUTH FUNCTIONS -------------- */
 
 int register_user(int sock_fd, const char *username, const char *password) {
     set_log_file("logs/client.log");
@@ -127,5 +136,89 @@ char* login_user(int sock_fd, const char *username, const char *password) {
         return login_response;
     }
     printf("Login failed: Invalid username or password.\n");
+    return "-1";
+}
+
+
+
+/* -------------- PRODUCTS FUNCTIONS -------------- */
+
+char* get_products(int sock_fd) {
+    char message[512];
+    snprintf(message, sizeof(message), "GET_PRODUCTS");
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send get_products request");
+        return "1";
+    }
+
+    int bytes_received = recv(sock_fd, get_products_response, sizeof(get_products_response) - 1, 0);
+    if (bytes_received <= 0) {
+        perror("Failed to receive get_products response");
+        return "2";
+    }
+    get_products_response[bytes_received] = '\0';
+
+    if (strncmp(get_products_response, "true", 4) == 0) {
+        printf("Get products successful!");
+        return get_products_response;
+    }
+    printf("Get products failed.\n");
+    return "-1";
+}
+
+
+
+/* -------------- CUSTOMERS FUNCTIONS -------------- */
+
+char* get_customers(int sock_fd) {
+    char message[512];
+    snprintf(message, sizeof(message), "GET_CUSTOMERS");
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send get_customers request");
+        return "1";
+    }
+
+    int bytes_received = recv(sock_fd, get_customers_response, sizeof(get_customers_response) - 1, 0);
+    if (bytes_received <= 0) {
+        perror("Failed to receive get_customers response");
+        return "2";
+    }
+    get_customers_response[bytes_received] = '\0';
+
+    if (strncmp(get_customers_response, "true", 4) == 0) {
+        printf("Get customers successful!");
+        return get_customers_response;
+    }
+    printf("Get customers failed.\n");
+    return "-1";
+}
+
+
+
+/* -------------- USERS FUNCTIONS -------------- */
+
+char* get_users(int sock_fd) {
+    char message[512];
+    snprintf(message, sizeof(message), "GET_USERS");
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send get_users request");
+        return "1";
+    }
+
+    int bytes_received = recv(sock_fd, get_users_response, sizeof(get_users_response) - 1, 0);
+    if (bytes_received <= 0) {
+        perror("Failed to receive get_users response");
+        return "2";
+    }
+    get_users_response[bytes_received] = '\0';
+
+    if (strncmp(get_users_response, "true", 4) == 0) {
+        printf("Get users successful!");
+        return get_users_response;
+    }
+    printf("Get users failed.\n");
     return "-1";
 }

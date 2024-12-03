@@ -9,4 +9,13 @@ int disconnect_from_server(int sock);
 int register_user(int sock_fd, const char *username, const char *password);
 char* login_user(int sock_fd, const char *username, const char *password);
 
+/* Product handlers */
+char* get_products(int sock_fd);
+
+/* Customers handlers */
+char* get_customers(int sock_fd);
+
+/* Users handlers */
+char* get_users(int sock_fd);
+
 #endif

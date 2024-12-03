@@ -15,24 +15,20 @@
 // Global variables
 int sock;
 User current_user = {0};
-char id[100];
-char username[50];
-char password[100];
-char role[20];
-char created_at[64];
-char first_name[255];
-char last_name[255];
-char email[255];
-char phone_number[20];
-char status[10];
 
 GtkBuilder *auth_builder;
 GtkBuilder *main_builder;
 GtkBuilder *products_builder;
+GtkBuilder *customers_builder;
+GtkBuilder *users_builder;
+GtkBuilder *profile_builder;
 
 GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *IncorrectPassword;
 GtkWidget *MainPage;
 GtkWidget *ProductListPage;
+GtkWidget *CustomersListPage;
+GtkWidget *UsersListPage;
+GtkWidget *ProfilePage;
 
 
 /* GTK handlers */
@@ -47,11 +43,19 @@ void on_login_back_clicked();
 void on_orders_btn_clicked();
 
 void on_products_btn_clicked();
+void on_products_back_clicked();
 void setup_products_treeview(GtkTreeView *products_tv);
+void add_product(GtkButton *button, gpointer user_data);
+void delete_product(GtkButton *button, gpointer user_data);
 
-void on_tables_btn_clicked();
+void on_customers_btn_clicked();
+void on_customers_back_btn_clicked();
 
 void on_users_btn_clicked();
+void on_users_back_btn_clicked();
+
+void on_profile_btn_clicked();
+void on_profile_back_btn_clicked();
 
 
 /* ----------------- MAIN */
@@ -65,6 +69,9 @@ int main(int argc, char* argv[]){
     auth_builder = gtk_builder_new_from_file("glade/register.glade");
     main_builder = gtk_builder_new_from_file("glade/main_page.glade");
     products_builder = gtk_builder_new_from_file("glade/products.glade");
+    customers_builder = gtk_builder_new_from_file("glade/customers.glade");
+    users_builder = gtk_builder_new_from_file("glade/users.glade");
+    profile_builder = gtk_builder_new_from_file("glade/profile.glade");
 
     WelcomePage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "welcome_page"));
     RegisterPage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "Register"));
@@ -76,11 +83,20 @@ int main(int argc, char* argv[]){
 
     ProductListPage = GTK_WIDGET(gtk_builder_get_object(products_builder, "ProductListPage"));
 
+    CustomersListPage = GTK_WIDGET(gtk_builder_get_object(customers_builder, "MainPage"));
+
+    UsersListPage = GTK_WIDGET(gtk_builder_get_object(users_builder, "MainPage"));
+
+    ProfilePage = GTK_WIDGET(gtk_builder_get_object(profile_builder, "MainPage"));
+
     g_signal_connect(WelcomePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(RegisterPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); //..
     g_signal_connect(LoginPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); // will be changed
     g_signal_connect(MainPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProductListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(CustomersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(ProfilePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     // Welcome Page data
     GtkWidget *register_button_main = GTK_WIDGET(gtk_builder_get_object(auth_builder, "register_button_main"));
@@ -105,12 +121,15 @@ int main(int argc, char* argv[]){
     GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(main_builder, "profile_label"));
     GtkWidget *orders_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "orders_btn"));
     GtkWidget *products_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "products_btn"));
-    GtkWidget *tables_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "tables_btn"));
+    GtkWidget *products_back_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "products_back_btn"));
+    GtkWidget *customers_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "customers_btn"));
     GtkWidget *users_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "users_btn"));
     g_signal_connect(orders_btn, "clicked", G_CALLBACK(on_orders_btn_clicked), NULL);
     g_signal_connect(products_btn, "clicked", G_CALLBACK(on_products_btn_clicked), NULL);
-    g_signal_connect(tables_btn, "clicked", G_CALLBACK(on_tables_btn_clicked), NULL);
+    g_signal_connect(products_back_btn, "clicked", G_CALLBACK(on_products_back_clicked), NULL);
+    g_signal_connect(customers_btn, "clicked", G_CALLBACK(on_customers_btn_clicked), NULL);
     g_signal_connect(users_btn, "clicked", G_CALLBACK(on_users_btn_clicked), NULL);
+    g_signal_connect(profile_btn, "clicked", G_CALLBACK(on_profile_btn_clicked), NULL);
 
     // Products Page data
     GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
@@ -120,6 +139,18 @@ int main(int argc, char* argv[]){
     GtkWidget *active_sessions_btn_products = GTK_WIDGET(gtk_builder_get_object(products_builder, "active_sessions_btn"));
     // GtkWidget *orders_btn_products = GTK_WIDGET(gtk_builder_get_object(products_builder, "orders_btn_products"));
 
+    // Customers Page data
+    GtkWidget *customers_back_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "customers_back_btn"));
+    GtkListStore *customer_liststore = GTK_LIST_STORE(gtk_builder_get_object(customers_builder, "customer_liststore"));
+    g_signal_connect(customers_back_btn, "clicked", G_CALLBACK(on_customers_back_btn_clicked), NULL);
+
+    // Users Page data
+    GtkWidget *users_back_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "users_back_btn"));
+    GtkListStore *user_liststore = GTK_LIST_STORE(gtk_builder_get_object(users_builder, "user_liststore"));
+    g_signal_connect(users_back_btn, "clicked", G_CALLBACK(on_users_back_btn_clicked), NULL);
+
+    // Profile Page data
+    GtkWidget *profile_back_btn = GTK_WIDGET(gtk_builder_get_object(profile_builder, "profile_back_btn"));
 
     sock = connect_to_server();
 
@@ -132,20 +163,7 @@ int main(int argc, char* argv[]){
 
 
 
-/* Welcome Page Handlers */
-
-void on_login_button_main_clicked() {
-    gtk_widget_hide(WelcomePage);
-    gtk_widget_show(LoginPage);
-}
-
-void on_register_button_main_clicked() {
-    gtk_widget_hide(WelcomePage);
-    gtk_widget_show(RegisterPage);
-}
-
-
-/* Register Page Handlers */
+/* -------------------- AUTH HANDLERS */
 
 void on_register_button_clicked() {
     GtkEntry *entry_username_register = GTK_ENTRY(gtk_builder_get_object(auth_builder, "username_register"));
@@ -194,13 +212,6 @@ void on_register_button_clicked() {
     }
 }
 
-void on_register_back_clicked() {
-    gtk_widget_hide (GTK_WIDGET(RegisterPage));
- 	gtk_widget_show (GTK_WIDGET(WelcomePage));
-}
-
-
-/* Login Page Handlers */
 
 void on_login_button_clicked() {
     GtkEntry *entry_username_login = GTK_ENTRY(gtk_builder_get_object(auth_builder, "username_login"));
@@ -293,25 +304,22 @@ void on_login_button_clicked() {
         gtk_widget_hide(LoginPage);
         gtk_widget_show(MainPage);
     };
-
-}
-
-void on_login_back_clicked() {
-    gtk_widget_hide (GTK_WIDGET(LoginPage));
- 	gtk_widget_show (GTK_WIDGET(WelcomePage));
 }
 
 
-/* ----------------- MAIN PAGE */
 
-void on_orders_btn_clicked(){
-}
+/* ----------------- PRODUCTS FUNCTIONS */
+
 
 void on_products_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(MainPage));
     gtk_widget_show (GTK_WIDGET(ProductListPage));
 
     GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
+
+    char *response = get_products(sock);
+
+    printf("CLIENT.C: %s\n", response);
     setup_products_treeview(products_tv);
 }
 
@@ -335,10 +343,188 @@ void setup_products_treeview(GtkTreeView *treeview) {
     gtk_tree_view_append_column(treeview, column);
 }
 
-void on_tables_btn_clicked(){
+// void add_product(GtkButton *button, gpointer user_data) {
+//     GtkListStore *liststore = GTK_LIST_STORE(user_data);
+//     PGconn *conn = connect_to_database();
+//     if (!conn) return;
 
+//     // Example: Adding a new product with static data (can be dynamic with GTK Entry widgets)
+//     const char *name = "New Product";
+//     int price = 100;
+
+//     // Insert into the database
+//     char query[256];
+//     snprintf(query, sizeof(query), "INSERT INTO products (name, price) VALUES ('%s', %d) RETURNING id", name, price);
+//     PGresult *res = PQexec(conn, query);
+
+//     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+//         fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
+//         PQclear(res);
+//         PQfinish(conn);
+//         return;
+//     }
+
+//     // Get the newly inserted product ID
+//     guint id = atoi(PQgetvalue(res, 0, 0));
+
+//     // Add to the ListStore
+//     GtkTreeIter iter;
+//     gtk_list_store_append(liststore, &iter);
+//     gtk_list_store_set(liststore, &iter,
+//                        0, id,
+//                        1, name,
+//                        2, price,
+//                        -1);
+
+//     PQclear(res);
+//     PQfinish(conn);
+// }
+
+// void delete_product(GtkButton *button, gpointer user_data) {
+//     GtkTreeView *treeview = GTK_TREE_VIEW(user_data);
+//     GtkTreeSelection *selection = gtk_tree_view_get_selection(treeview);
+//     GtkTreeModel *model;
+//     GtkTreeIter iter;
+
+//     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
+//         guint id;
+//         gtk_tree_model_get(model, &iter, 0, &id, -1);
+
+//         PGconn *conn = connect_to_database();
+//         if (!conn) return;
+
+//         // Delete from the database
+//         char query[128];
+//         snprintf(query, sizeof(query), "DELETE FROM products WHERE id = %u", id);
+//         PGresult *res = PQexec(conn, query);
+
+//         if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+//             fprintf(stderr, "Delete failed: %s\n", PQerrorMessage(conn));
+//             PQclear(res);
+//             PQfinish(conn);
+//             return;
+//         }
+
+//         // Remove from the ListStore
+//         gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+
+//         PQclear(res);
+//         PQfinish(conn);
+//     } else {
+//         printf("No row selected for deletion.\n");
+//     }
+// }
+
+
+
+/* ----------------- CUSTOMERS FUNCTIONS */
+
+
+void on_customers_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(MainPage));
+    gtk_widget_show (GTK_WIDGET(CustomersListPage));
+
+    GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "customers_tv"));
+
+    char *response = get_customers(sock);
+
+    printf("Customers List response: %s\n", response);
 }
 
-void on_users_btn_clicked(){
 
+
+/* ----------------- ORDERS FUNCTIONS */
+
+
+void on_orders_btn_clicked(){
+}
+
+
+
+/* ----------------- USERS FUNCTIONS */
+
+
+void on_users_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(MainPage));
+    gtk_widget_show (GTK_WIDGET(UsersListPage));
+
+    GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
+
+    char *response = get_users(sock);
+
+    printf("Users List response: %s\n", response);
+}
+
+
+
+/* ----------------- PROFILE FUNCTIONS */
+
+
+void on_profile_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(MainPage));
+    gtk_widget_show (GTK_WIDGET(ProfilePage));
+
+    GtkEntry *profile_first_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_first_name"));
+    GtkEntry *profile_last_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_last_name"));
+    GtkEntry *profile_username = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_username"));
+    GtkEntry *profile_password = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_password"));
+    GtkEntry *profile_role = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_created_at = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_email = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_phone_number = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+
+
+    gtk_entry_set_text(profile_first_name, current_user.first_name);
+    gtk_entry_set_text(profile_last_name, current_user.last_name);
+    gtk_entry_set_text(profile_username, current_user.username);
+    gtk_entry_set_text(profile_password, current_user.password);
+    gtk_entry_set_text(profile_role, current_user.role);
+    gtk_entry_set_text(profile_created_at, current_user.created_at);
+    gtk_entry_set_text(profile_email, current_user.email);
+    gtk_entry_set_text(profile_phone_number, current_user.phone_number);
+}
+
+
+/* ------------ Helper Handlers ----------- */
+
+void on_login_button_main_clicked() {
+    gtk_widget_hide(WelcomePage);
+    gtk_widget_show(LoginPage);
+}
+
+void on_register_button_main_clicked() {
+    gtk_widget_hide(WelcomePage);
+    gtk_widget_show(RegisterPage);
+}
+
+void on_register_back_clicked() {
+    gtk_widget_hide (GTK_WIDGET(RegisterPage));
+ 	gtk_widget_show (GTK_WIDGET(WelcomePage));
+}
+
+void on_login_back_clicked() {
+    gtk_widget_hide (GTK_WIDGET(LoginPage));
+ 	gtk_widget_show (GTK_WIDGET(WelcomePage));
+}
+
+// ---
+
+void on_products_back_clicked(){
+    gtk_widget_hide (GTK_WIDGET(ProductListPage));
+    gtk_widget_show (GTK_WIDGET(MainPage));
+}
+
+void on_customers_back_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(CustomersListPage));
+    gtk_widget_show (GTK_WIDGET(MainPage));
+}
+
+void on_users_back_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(UsersListPage));
+    gtk_widget_show (GTK_WIDGET(MainPage));
+}
+
+void on_profile_back_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(ProfilePage));
+    gtk_widget_show (GTK_WIDGET(MainPage));
 }
