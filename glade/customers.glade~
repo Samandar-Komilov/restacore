@@ -6,13 +6,29 @@
     <columns>
       <!-- column-name id -->
       <column type="guint"/>
+      <!-- column-name first_name -->
+      <column type="gchararray"/>
+      <!-- column-name last_name -->
+      <column type="gchararray"/>
+      <!-- column-name phone_number -->
+      <column type="gchararray"/>
+      <!-- column-name visited_at -->
+      <column type="gchararray"/>
     </columns>
     <data>
       <row>
         <col id="0">1</col>
+        <col id="1" translatable="yes"/>
+        <col id="2" translatable="yes"/>
+        <col id="3" translatable="yes"/>
+        <col id="4" translatable="yes"/>
       </row>
       <row>
         <col id="0">2</col>
+        <col id="1" translatable="yes"/>
+        <col id="2" translatable="yes"/>
+        <col id="3" translatable="yes"/>
+        <col id="4" translatable="yes"/>
       </row>
     </data>
   </object>
@@ -125,6 +141,21 @@
           <packing>
             <property name="x">1200</property>
             <property name="y">40</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="customers_back_btn">
+            <property name="label">gtk-go-back</property>
+            <property name="width-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">60</property>
+            <property name="y">120</property>
           </packing>
         </child>
       </object>

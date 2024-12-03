@@ -24,7 +24,7 @@
       </row>
     </data>
   </object>
-  <object class="GtkWindow" id="MainPage">
+  <object class="GtkWindow" id="ProductListPage">
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">BistroSync | Main</property>
     <property name="resizable">False</property>
@@ -133,6 +133,21 @@
           <packing>
             <property name="x">1200</property>
             <property name="y">40</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="products_back_btn">
+            <property name="label">gtk-go-back</property>
+            <property name="width-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">60</property>
+            <property name="y">120</property>
           </packing>
         </child>
       </object>

@@ -16,4 +16,10 @@ void add_user(PGconn *conn, const char *username, const char *password, const ch
 void fetch_users(PGconn *conn);
 void get_user(PGconn *conn);
 
+/* Product handlers */
+void fetch_products(int sock);
+
+/* Customer handlers */
+void fetch_customers(int sock);
+
 #endif
