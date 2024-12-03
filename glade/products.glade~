@@ -2,6 +2,90 @@
 <!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkWindow" id="create_product_popup">
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkFixed">
+        <property name="width-request">500</property>
+        <property name="height-request">300</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkEntry" id="create_product_popup_name">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Name</property>
+            <property name="input-purpose">alpha</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">130</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="create_product_popup_price">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Price</property>
+            <property name="input-purpose">number</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">189</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="create_product_popup_label">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Create Product</property>
+            <attributes>
+              <attribute name="size" value="18000"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">50</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="create_product_popup_save_btn">
+            <property name="label">gtk-save</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">370</property>
+            <property name="y">250</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label">gtk-cancel</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">30</property>
+            <property name="y">250</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
   <object class="GtkListStore" id="product_liststore">
     <columns>
       <!-- column-name id -->
@@ -11,18 +95,6 @@
       <!-- column-name price -->
       <column type="gint"/>
     </columns>
-    <data>
-      <row>
-        <col id="0">1</col>
-        <col id="1" translatable="yes"/>
-        <col id="2">0</col>
-      </row>
-      <row>
-        <col id="0">2</col>
-        <col id="1" translatable="yes"/>
-        <col id="2">0</col>
-      </row>
-    </data>
   </object>
   <object class="GtkWindow" id="ProductListPage">
     <property name="can-focus">False</property>
@@ -101,8 +173,8 @@
         </child>
         <child>
           <object class="GtkScrolledWindow">
-            <property name="width-request">1100</property>
-            <property name="height-request">600</property>
+            <property name="width-request">800</property>
+            <property name="height-request">550</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="shadow-type">in</property>
@@ -118,8 +190,8 @@
             </child>
           </object>
           <packing>
-            <property name="x">150</property>
-            <property name="y">150</property>
+            <property name="x">300</property>
+            <property name="y">180</property>
           </packing>
         </child>
         <child>
@@ -148,6 +220,20 @@
           <packing>
             <property name="x">60</property>
             <property name="y">120</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="add_product_btn">
+            <property name="label" translatable="yes">Add Product</property>
+            <property name="width-request">100</property>
+            <property name="height-request">40</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="x">300</property>
+            <property name="y">140</property>
           </packing>
         </child>
       </object>

@@ -108,7 +108,7 @@ void *handle_command(void *client_fd_ptr){
             fetch_users(client_fd);
         }
 
-        if (strstr(buffer, "ADD_PRODUCT|") != NULL) {
+        if (strstr(buffer, "CREATE_PRODUCT|") != NULL) {
             add_product(buffer, client_fd);
         }
     }
@@ -322,10 +322,10 @@ void add_product(const char *data, int sock) {
 
     char name[255];
     char priceStr[10];
-    if (sscanf(data, "ADD_PRODUCT|%254[^|]|%9[^|]", name, priceStr) != 2) {
+    if (sscanf(data, "CREATE_PRODUCT|%254[^|]|%9[^|]", name, priceStr) != 2) {
         // printf("LOGIN_DATA: [%s][%s]\n", username, password);
-        logger("ERROR", "Invalid login data format: %s", data);
-        fprintf(stderr, "Invalid login data format: %s\n", data);
+        logger("ERROR", "Invalid product creation data format: %s", data);
+        fprintf(stderr, "Invalid product creation data format: %s\n", data);
         return;
     }
 

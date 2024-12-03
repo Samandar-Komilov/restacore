@@ -11,6 +11,7 @@ char* login_user(int sock_fd, const char *username, const char *password);
 
 /* Product handlers */
 char* get_products(int sock_fd);
+int add_product(int sock_fd, const char *name, const int price);
 
 /* Customers handlers */
 char* get_customers(int sock_fd);

@@ -25,7 +25,7 @@ GtkBuilder *profile_builder;
 
 GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *IncorrectPassword;
 GtkWidget *MainPage;
-GtkWidget *ProductListPage;
+GtkWidget *ProductListPage, *AddProductPopup;
 GtkWidget *CustomersListPage;
 GtkWidget *UsersListPage;
 GtkWidget *ProfilePage;
@@ -45,6 +45,9 @@ void on_orders_btn_clicked();
 void on_products_btn_clicked();
 void on_products_back_clicked();
 void setup_products_treeview(GtkTreeView *treeview, char *response);
+void on_add_product_btn_clicked();
+void on_save_product_btn_clicked();
+void on_cancel_product_btn_clicked();
 
 void on_customers_btn_clicked();
 void on_customers_back_btn_clicked();
@@ -80,6 +83,7 @@ int main(int argc, char* argv[]){
     MainPage = GTK_WIDGET(gtk_builder_get_object(main_builder, "MainPage"));
 
     ProductListPage = GTK_WIDGET(gtk_builder_get_object(products_builder, "ProductListPage"));
+    AddProductPopup = GTK_WIDGET(gtk_builder_get_object(products_builder, "AddProductPopup"));
 
     CustomersListPage = GTK_WIDGET(gtk_builder_get_object(customers_builder, "MainPage"));
 
@@ -92,6 +96,8 @@ int main(int argc, char* argv[]){
     g_signal_connect(LoginPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); // will be changed
     g_signal_connect(MainPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProductListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(AddProductPopup, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+
     g_signal_connect(CustomersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProfilePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
@@ -134,8 +140,17 @@ int main(int argc, char* argv[]){
     GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(products_builder, "product_liststore"));
     GtkWidget *profile_btn_products = GTK_WIDGET(gtk_builder_get_object(products_builder, "profile_btn"));
     GtkWidget *profile_label_products = GTK_WIDGET(gtk_builder_get_object(main_builder, "profile_label"));
+    GtkWidget *add_product_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "add_product_btn"));
     GtkWidget *active_sessions_btn_products = GTK_WIDGET(gtk_builder_get_object(products_builder, "active_sessions_btn"));
-    // GtkWidget *orders_btn_products = GTK_WIDGET(gtk_builder_get_object(products_builder, "orders_btn_products"));
+    g_signal_connect(add_product_btn, "clicked", G_CALLBACK(on_add_product_btn_clicked), NULL);
+
+    // Add product Popup data
+
+    GtkWidget *create_product_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_save_btn"));
+    GtkWidget *create_product_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_cancel_btn"));
+    g_signal_connect(create_product_popup_save_btn, "clicked", G_CALLBACK(on_save_product_btn_clicked), NULL);
+    g_signal_connect(create_product_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel_product_btn_clicked), NULL);
+    
 
     // Customers Page data
     GtkWidget *customers_back_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "customers_back_btn"));
@@ -378,45 +393,45 @@ void setup_products_treeview(GtkTreeView *treeview, char *response) {
     }
 }
 
+void on_add_product_btn_clicked() {
+    gtk_widget_show(AddProductPopup);
+}
 
 
+void on_save_product_btn_clicked(){
+    GtkEntry *name_entry = GTK_ENTRY(gtk_builder_get_object(products_builder, "create_product_popup_name"));
+    GtkEntry *price_entry = GTK_ENTRY(gtk_builder_get_object(products_builder, "create_product_popup_price"));
 
-// void add_product(GtkButton *button, gpointer user_data) {
-//     GtkListStore *liststore = GTK_LIST_STORE(user_data);
-//     PGconn *conn = connect_to_database();
-//     if (!conn) return;
+    const char *name = gtk_entry_get_text(name_entry);
+    const char *price_str = gtk_entry_get_text(price_entry);
 
-//     // Example: Adding a new product with static data (can be dynamic with GTK Entry widgets)
-//     const char *name = "New Product";
-//     int price = 100;
+    int price = atoi(price_str);
 
-//     // Insert into the database
-//     char query[256];
-//     snprintf(query, sizeof(query), "INSERT INTO products (name, price) VALUES ('%s', %d) RETURNING id", name, price);
-//     PGresult *res = PQexec(conn, query);
+    if (strlen(name) == 0 || price <= 0) {
+        g_print("Invalid input: Name cannot be empty and Price must be greater than 0.\n");
+        return;
+    }
 
-//     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-//         fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
-//         PQclear(res);
-//         PQfinish(conn);
-//         return;
-//     }
+    int result = add_product(sock, name, price);
 
-//     // Get the newly inserted product ID
-//     guint id = atoi(PQgetvalue(res, 0, 0));
+    if (result == 1) {
+        g_print("Product added successfully: %s, %d\n", name, price);
+    } else {
+        g_print("Failed to add product.\n");
+    }
 
-//     // Add to the ListStore
-//     GtkTreeIter iter;
-//     gtk_list_store_append(liststore, &iter);
-//     gtk_list_store_set(liststore, &iter,
-//                        0, id,
-//                        1, name,
-//                        2, price,
-//                        -1);
+    // Refreshing table content
+    GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
+    char *response = get_products(sock);
+    setup_products_treeview(products_tv, response);
 
-//     PQclear(res);
-//     PQfinish(conn);
-// }
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(products_builder, "AddProductPopup"));
+    gtk_widget_hide(popup);
+}
+
+void on_cancel_product_btn_clicked(){
+    gtk_widget_hide(AddProductPopup);
+}
 
 // void delete_product(GtkButton *button, gpointer user_data) {
 //     GtkTreeView *treeview = GTK_TREE_VIEW(user_data);
