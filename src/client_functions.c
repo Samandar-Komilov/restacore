@@ -12,7 +12,8 @@
 
 char login_response[512];
 char get_products_response[5096]; // ~250 products can be returned in a single response
-char get_customers_response[5096]; // ~200 customers can be returned in a single response
+char get_customers_response[5096]; // ~150 customers can be returned in a single response
+char get_users_response[5096]; // ~100 users can be returned in a single response
 
 
 /* -------------- CLIENT-SERVER INTERACTIONS -------------- */
@@ -168,7 +169,7 @@ char* get_products(int sock_fd) {
 
 
 
-/* -------------- PRODUCTS FUNCTIONS -------------- */
+/* -------------- CUSTOMERS FUNCTIONS -------------- */
 
 char* get_customers(int sock_fd) {
     char message[512];
@@ -191,5 +192,33 @@ char* get_customers(int sock_fd) {
         return get_customers_response;
     }
     printf("Get customers failed.\n");
+    return "-1";
+}
+
+
+
+/* -------------- USERS FUNCTIONS -------------- */
+
+char* get_users(int sock_fd) {
+    char message[512];
+    snprintf(message, sizeof(message), "GET_USERS");
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send get_users request");
+        return "1";
+    }
+
+    int bytes_received = recv(sock_fd, get_users_response, sizeof(get_users_response) - 1, 0);
+    if (bytes_received <= 0) {
+        perror("Failed to receive get_users response");
+        return "2";
+    }
+    get_users_response[bytes_received] = '\0';
+
+    if (strncmp(get_users_response, "true", 4) == 0) {
+        printf("Get users successful!");
+        return get_users_response;
+    }
+    printf("Get users failed.\n");
     return "-1";
 }

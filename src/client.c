@@ -20,11 +20,15 @@ GtkBuilder *auth_builder;
 GtkBuilder *main_builder;
 GtkBuilder *products_builder;
 GtkBuilder *customers_builder;
+GtkBuilder *users_builder;
+GtkBuilder *profile_builder;
 
 GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *IncorrectPassword;
 GtkWidget *MainPage;
 GtkWidget *ProductListPage;
 GtkWidget *CustomersListPage;
+GtkWidget *UsersListPage;
+GtkWidget *ProfilePage;
 
 
 /* GTK handlers */
@@ -48,6 +52,10 @@ void on_customers_btn_clicked();
 void on_customers_back_btn_clicked();
 
 void on_users_btn_clicked();
+void on_users_back_btn_clicked();
+
+void on_profile_btn_clicked();
+void on_profile_back_btn_clicked();
 
 
 /* ----------------- MAIN */
@@ -62,6 +70,8 @@ int main(int argc, char* argv[]){
     main_builder = gtk_builder_new_from_file("glade/main_page.glade");
     products_builder = gtk_builder_new_from_file("glade/products.glade");
     customers_builder = gtk_builder_new_from_file("glade/customers.glade");
+    users_builder = gtk_builder_new_from_file("glade/users.glade");
+    profile_builder = gtk_builder_new_from_file("glade/profile.glade");
 
     WelcomePage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "welcome_page"));
     RegisterPage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "Register"));
@@ -75,12 +85,18 @@ int main(int argc, char* argv[]){
 
     CustomersListPage = GTK_WIDGET(gtk_builder_get_object(customers_builder, "MainPage"));
 
+    UsersListPage = GTK_WIDGET(gtk_builder_get_object(users_builder, "MainPage"));
+
+    ProfilePage = GTK_WIDGET(gtk_builder_get_object(profile_builder, "MainPage"));
+
     g_signal_connect(WelcomePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(RegisterPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); //..
     g_signal_connect(LoginPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); // will be changed
     g_signal_connect(MainPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProductListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(CustomersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(ProfilePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     // Welcome Page data
     GtkWidget *register_button_main = GTK_WIDGET(gtk_builder_get_object(auth_builder, "register_button_main"));
@@ -113,6 +129,7 @@ int main(int argc, char* argv[]){
     g_signal_connect(products_back_btn, "clicked", G_CALLBACK(on_products_back_clicked), NULL);
     g_signal_connect(customers_btn, "clicked", G_CALLBACK(on_customers_btn_clicked), NULL);
     g_signal_connect(users_btn, "clicked", G_CALLBACK(on_users_btn_clicked), NULL);
+    g_signal_connect(profile_btn, "clicked", G_CALLBACK(on_profile_btn_clicked), NULL);
 
     // Products Page data
     GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
@@ -126,6 +143,14 @@ int main(int argc, char* argv[]){
     GtkWidget *customers_back_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "customers_back_btn"));
     GtkListStore *customer_liststore = GTK_LIST_STORE(gtk_builder_get_object(customers_builder, "customer_liststore"));
     g_signal_connect(customers_back_btn, "clicked", G_CALLBACK(on_customers_back_btn_clicked), NULL);
+
+    // Users Page data
+    GtkWidget *users_back_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "users_back_btn"));
+    GtkListStore *user_liststore = GTK_LIST_STORE(gtk_builder_get_object(users_builder, "user_liststore"));
+    g_signal_connect(users_back_btn, "clicked", G_CALLBACK(on_users_back_btn_clicked), NULL);
+
+    // Profile Page data
+    GtkWidget *profile_back_btn = GTK_WIDGET(gtk_builder_get_object(profile_builder, "profile_back_btn"));
 
     sock = connect_to_server();
 
@@ -416,8 +441,47 @@ void on_orders_btn_clicked(){
 
 
 
-void on_users_btn_clicked(){
+/* ----------------- USERS FUNCTIONS */
 
+
+void on_users_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(MainPage));
+    gtk_widget_show (GTK_WIDGET(UsersListPage));
+
+    GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
+
+    char *response = get_users(sock);
+
+    printf("Users List response: %s\n", response);
+}
+
+
+
+/* ----------------- PROFILE FUNCTIONS */
+
+
+void on_profile_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(MainPage));
+    gtk_widget_show (GTK_WIDGET(ProfilePage));
+
+    GtkEntry *profile_first_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_first_name"));
+    GtkEntry *profile_last_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_last_name"));
+    GtkEntry *profile_username = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_username"));
+    GtkEntry *profile_password = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_password"));
+    GtkEntry *profile_role = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_created_at = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_email = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_phone_number = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+
+
+    gtk_entry_set_text(profile_first_name, current_user.first_name);
+    gtk_entry_set_text(profile_last_name, current_user.last_name);
+    gtk_entry_set_text(profile_username, current_user.username);
+    gtk_entry_set_text(profile_password, current_user.password);
+    gtk_entry_set_text(profile_role, current_user.role);
+    gtk_entry_set_text(profile_created_at, current_user.created_at);
+    gtk_entry_set_text(profile_email, current_user.email);
+    gtk_entry_set_text(profile_phone_number, current_user.phone_number);
 }
 
 
@@ -452,5 +516,15 @@ void on_products_back_clicked(){
 
 void on_customers_back_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(CustomersListPage));
+    gtk_widget_show (GTK_WIDGET(MainPage));
+}
+
+void on_users_back_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(UsersListPage));
+    gtk_widget_show (GTK_WIDGET(MainPage));
+}
+
+void on_profile_back_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(ProfilePage));
     gtk_widget_show (GTK_WIDGET(MainPage));
 }

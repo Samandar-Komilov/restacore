@@ -15,4 +15,7 @@ char* get_products(int sock_fd);
 /* Customers handlers */
 char* get_customers(int sock_fd);
 
+/* Users handlers */
+char* get_users(int sock_fd);
+
 #endif
