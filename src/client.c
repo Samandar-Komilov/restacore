@@ -26,12 +26,12 @@ GtkBuilder *profile_builder;
 GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *IncorrectPassword;
 GtkWidget *MainPage;
 GtkWidget *ProductListPage, *AddProductPopup, *UpdateDeleteProductPopup;
-GtkWidget *CustomersListPage;
+GtkWidget *CustomersListPage, *AddCustomerPopup, *UpdateDeleteCustomerPopup;
 GtkWidget *UsersListPage;
 GtkWidget *ProfilePage;
 
 
-/* GTK handlers */
+/* Auth handler prototypes */
 void on_login_button_main_clicked();
 void on_register_button_main_clicked();
 
@@ -40,25 +40,47 @@ void on_register_back_clicked();
 void on_login_button_clicked();
 void on_login_back_clicked();
 
+
+/* Orders handler prototypes */
 void on_orders_btn_clicked();
 
+/* Products handler prototypes */
 void on_products_btn_clicked();
 void on_products_back_clicked();
 void setup_products_treeview(GtkTreeView *treeview, char *response);
 void on_add_product_btn_clicked();
 void on_save_product_btn_clicked();
 void on_cancel_product_btn_clicked();
-void on_product_row_double_clicked();
+void on_product_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
 void on_update_product_btn_clicked();
 void on_delete_product_btn_clicked();
 void on_cancel2_product_btn_clicked();
 
+/* Customers handler prototypes */
 void on_customers_btn_clicked();
 void on_customers_back_btn_clicked();
+void setup_customers_treeview(GtkTreeView *treeview, char *response);
+void on_add_customer_btn_clicked();
+void on_save_customer_btn_clicked();
+void on_cancel_customer_btn_clicked();
+void on_customer_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
+void on_update_customer_btn_clicked();
+void on_delete_customer_btn_clicked();
+void on_cancel2_customer_btn_clicked();
 
+/* Users handler prototypes */
 void on_users_btn_clicked();
 void on_users_back_btn_clicked();
+void setup_users_treeview(GtkTreeView *treeview, char *response);
+void on_add_user_btn_clicked();
+void on_save_user_btn_clicked();
+void on_cancel_user_btn_clicked();
+void on_user_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
+void on_update_user_btn_clicked();
+void on_delete_user_btn_clicked();
+void on_cancel2_user_btn_clicked();
 
+/* Profile handler prototypes */
 void on_profile_btn_clicked();
 void on_profile_back_btn_clicked();
 
@@ -74,7 +96,7 @@ int main(int argc, char* argv[]){
     auth_builder = gtk_builder_new_from_file("glade/register.glade");
     main_builder = gtk_builder_new_from_file("glade/main_page.glade");
     products_builder = gtk_builder_new_from_file("glade/products.glade");
-    customers_builder = gtk_builder_new_from_file("glade/customers.glade");
+    customers_builder = gtk_builder_new_from_file("glade/customer.glade");
     users_builder = gtk_builder_new_from_file("glade/users.glade");
     profile_builder = gtk_builder_new_from_file("glade/profile.glade");
 
@@ -90,7 +112,9 @@ int main(int argc, char* argv[]){
     AddProductPopup = GTK_WIDGET(gtk_builder_get_object(products_builder, "AddProductPopup"));
     UpdateDeleteProductPopup = GTK_WIDGET(gtk_builder_get_object(products_builder, "UpdateDeleteProductPopup"));
 
-    CustomersListPage = GTK_WIDGET(gtk_builder_get_object(customers_builder, "MainPage"));
+    CustomersListPage = GTK_WIDGET(gtk_builder_get_object(customers_builder, "CustomerListPage"));
+    AddCustomerPopup = GTK_WIDGET(gtk_builder_get_object(customers_builder, "AddCustomerPopup"));
+    UpdateDeleteCustomerPopup = GTK_WIDGET(gtk_builder_get_object(customers_builder, "UpdateDeleteCustomerPopup"));
 
     UsersListPage = GTK_WIDGET(gtk_builder_get_object(users_builder, "MainPage"));
 
@@ -105,6 +129,9 @@ int main(int argc, char* argv[]){
     g_signal_connect(UpdateDeleteProductPopup, "destroy", G_CALLBACK(on_cancel2_product_btn_clicked), NULL);
 
     g_signal_connect(CustomersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(AddCustomerPopup, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(UpdateDeleteCustomerPopup, "destroy", G_CALLBACK(on_cancel2_customer_btn_clicked), NULL);
+
     g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProfilePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
@@ -150,8 +177,6 @@ int main(int argc, char* argv[]){
     GtkWidget *active_sessions_btn_products = GTK_WIDGET(gtk_builder_get_object(products_builder, "active_sessions_btn"));
     g_signal_connect(add_product_btn, "clicked", G_CALLBACK(on_add_product_btn_clicked), NULL);
     g_signal_connect(products_tv, "row-activated", G_CALLBACK(on_product_row_double_clicked), NULL);
-
-
     // CRUD product Popup data
     GtkWidget *create_product_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_save_btn"));
     GtkWidget *create_product_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_cancel_btn"));
@@ -163,12 +188,30 @@ int main(int argc, char* argv[]){
     g_signal_connect(update_delete_product_popup_apply_btn, "clicked", G_CALLBACK(on_update_product_btn_clicked), NULL);
     g_signal_connect(update_delete_product_popup_delete_btn, "clicked", G_CALLBACK(on_delete_product_btn_clicked), NULL);
     g_signal_connect(update_delete_product_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel2_product_btn_clicked), NULL);
-    
 
     // Customers Page data
-    GtkWidget *customers_back_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "customers_back_btn"));
+    GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(customers_builder, "customers_tv"));
     GtkListStore *customer_liststore = GTK_LIST_STORE(gtk_builder_get_object(customers_builder, "customer_liststore"));
+    GtkWidget *profile_btn_customers = GTK_WIDGET(gtk_builder_get_object(customers_builder, "profile_btn"));
+    GtkWidget *profile_label_customers = GTK_WIDGET(gtk_builder_get_object(customers_builder, "profile_label"));
+    GtkWidget *add_customer_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "add_customer_btn"));
+    GtkWidget *active_sessions_btn_customers = GTK_WIDGET(gtk_builder_get_object(customers_builder, "active_sessions_btn"));
+    GtkWidget *customers_back_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "customers_back_btn"));
+    g_signal_connect(add_customer_btn, "clicked", G_CALLBACK(on_add_customer_btn_clicked), NULL);
     g_signal_connect(customers_back_btn, "clicked", G_CALLBACK(on_customers_back_btn_clicked), NULL);
+    g_signal_connect(customers_tv, "row-activated", G_CALLBACK(on_customer_row_double_clicked), NULL);
+    // CRUD customer Popup data
+    GtkWidget *create_customer_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "create_customer_popup_save_btn"));
+    GtkWidget *create_customer_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "create_customer_popup_cancel_btn"));
+    GtkWidget *update_delete_customer_popup_apply_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_apply_btn"));
+    GtkWidget *update_delete_customer_popup_delete_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_delete_btn"));
+    GtkWidget *update_delete_customer_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_cancel_btn"));
+    g_signal_connect(create_customer_popup_save_btn, "clicked", G_CALLBACK(on_save_customer_btn_clicked), NULL);
+    g_signal_connect(create_customer_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel_customer_btn_clicked), NULL);
+    g_signal_connect(update_delete_customer_popup_apply_btn, "clicked", G_CALLBACK(on_update_customer_btn_clicked), NULL);
+    g_signal_connect(update_delete_customer_popup_delete_btn, "clicked", G_CALLBACK(on_delete_customer_btn_clicked), NULL);
+    g_signal_connect(update_delete_customer_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel2_customer_btn_clicked), NULL);
+
 
     // Users Page data
     GtkWidget *users_back_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "users_back_btn"));
@@ -544,41 +587,6 @@ void on_cancel2_product_btn_clicked(){
     gtk_widget_hide(UpdateDeleteProductPopup);
 }
 
-// void delete_product(GtkButton *button, gpointer user_data) {
-//     GtkTreeView *treeview = GTK_TREE_VIEW(user_data);
-//     GtkTreeSelection *selection = gtk_tree_view_get_selection(treeview);
-//     GtkTreeModel *model;
-//     GtkTreeIter iter;
-
-//     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
-//         guint id;
-//         gtk_tree_model_get(model, &iter, 0, &id, -1);
-
-//         PGconn *conn = connect_to_database();
-//         if (!conn) return;
-
-//         // Delete from the database
-//         char query[128];
-//         snprintf(query, sizeof(query), "DELETE FROM products WHERE id = %u", id);
-//         PGresult *res = PQexec(conn, query);
-
-//         if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-//             fprintf(stderr, "Delete failed: %s\n", PQerrorMessage(conn));
-//             PQclear(res);
-//             PQfinish(conn);
-//             return;
-//         }
-
-//         // Remove from the ListStore
-//         gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-
-//         PQclear(res);
-//         PQfinish(conn);
-//     } else {
-//         printf("No row selected for deletion.\n");
-//     }
-// }
-
 
 
 /* ----------------- CUSTOMERS FUNCTIONS */
@@ -588,13 +596,233 @@ void on_customers_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(MainPage));
     gtk_widget_show (GTK_WIDGET(CustomersListPage));
 
-    GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "customers_tv"));
+    GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(customers_builder, "customers_tv"));
+
+
+    GtkCellRenderer *renderer;
+
+    // ID Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(customers_tv),
+                                                -1, "ID", renderer, "text", 0, NULL);
+
+    // First Name Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(customers_tv),
+                                                -1, "First Name", renderer, "text", 1, NULL);
+
+    // Last Name Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(customers_tv),
+                                                -1, "Last Name", renderer, "text", 2, NULL);
+    // Phone Number Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(customers_tv),
+                                                -1, "Phone Number", renderer, "text", 3, NULL);
+    // Visited At Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(customers_tv),
+                                                -1, "Visited At", renderer, "text", 4, NULL);
+                                                
+    GtkTreeViewColumn *col_id = gtk_tree_view_get_column(customers_tv, 0);
+    GtkTreeViewColumn *col_first_name = gtk_tree_view_get_column(customers_tv, 1);
+    GtkTreeViewColumn *col_last_name = gtk_tree_view_get_column(customers_tv, 2);
+    GtkTreeViewColumn *col_phone_number = gtk_tree_view_get_column(customers_tv, 3);
+    GtkTreeViewColumn *col_visited_at = gtk_tree_view_get_column(customers_tv, 4);
+
+    gtk_tree_view_column_set_fixed_width(col_id, 50);
+    gtk_tree_view_column_set_fixed_width(col_first_name, 200);
+    gtk_tree_view_column_set_fixed_width(col_last_name, 200);
+    gtk_tree_view_column_set_fixed_width(col_phone_number, 150); 
+    gtk_tree_view_column_set_fixed_width(col_visited_at, 200); 
 
     char *response = get_customers(sock);
+    setup_customers_treeview(customers_tv, response);
 
     printf("Customers List response: %s\n", response);
 }
 
+
+void setup_customers_treeview(GtkTreeView *treeview, char *response) {
+    printf("SETUP CUSTOMERS TREEVIEW is working.\n");
+    GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(customers_builder, "customer_liststore"));
+    gtk_list_store_clear(liststore);
+
+    char *token = strtok(response, "|"); // skip true
+    token = strtok(NULL, "|");
+
+    while (token != NULL) {
+        printf("Current token: %s\n", token);
+        guint id;
+        char* name = NULL, *first_name = NULL, *last_name = NULL, *phone_number = NULL, *visited_at = NULL;
+
+        sscanf(token, "%d,%m[^,],%m[^,],%m[^,],%m[^,]", &id, &first_name, &last_name, &phone_number, &visited_at);
+
+        printf("First Name: %s, Last Name: %s, Phone Number: %s, Visited At: %s\n", first_name, last_name, phone_number, visited_at);
+
+        // Add the customer to the list store
+        GtkTreeIter iter;
+        gtk_list_store_append(liststore, &iter);
+        gtk_list_store_set(liststore, &iter,
+                           0, id,
+                           1, first_name,
+                           2, last_name,
+                           3, phone_number,
+                           4, visited_at,
+                           -1);
+
+        g_free(name);
+        token = strtok(NULL, "|");
+    }
+}
+
+void on_add_customer_btn_clicked() {
+    gtk_widget_show(AddCustomerPopup);
+}
+
+
+void on_save_customer_btn_clicked(){
+    GtkEntry *first_name_entry = GTK_ENTRY(gtk_builder_get_object(customers_builder, "create_customer_popup_fname"));
+    GtkEntry *last_name_entry = GTK_ENTRY(gtk_builder_get_object(customers_builder, "create_customer_popup_lname"));
+    GtkEntry *phone_number_entry = GTK_ENTRY(gtk_builder_get_object(customers_builder, "create_customer_popup_phone_number"));
+
+    const char *fname = gtk_entry_get_text(first_name_entry);
+    const char *lname = gtk_entry_get_text(last_name_entry);
+    const char *pnumber = gtk_entry_get_text(phone_number_entry);
+
+    if (strlen(fname) == 0 || strlen(lname) == 0 || strlen(pnumber) == 0) {
+        g_print("Invalid input: Name and Phone Number fields cannot be empty.\n");
+        return;
+    }
+
+    int result = add_customer(sock, fname, lname, pnumber);
+
+    if (result == 1) {
+        g_print("Customer added successfully: %s, %s %s\n", fname, lname, pnumber);
+    } else {
+        g_print("Failed to add customer.\n");
+    }
+
+    // Refreshing table content
+    GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(customers_builder, "customers_tv"));
+    char *response = get_customers(sock);
+    setup_customers_treeview(customers_tv, response);
+
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(customers_builder, "AddCustomerPopup"));
+    gtk_widget_hide(popup);
+}
+
+void on_cancel_customer_btn_clicked(){
+    gtk_widget_hide(AddCustomerPopup);
+}
+
+void on_customer_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data){
+    GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(customers_builder, "customers_tv"));
+    GtkListStore *liststore = GTK_LIST_STORE(gtk_tree_view_get_model(tree_view));
+    GtkTreeIter iter;
+
+    // Get the selected row data
+    if (gtk_tree_model_get_iter(GTK_TREE_MODEL(liststore), &iter, path)) {
+        guint id;
+        gchar *first_name;
+        gchar *last_name;
+        gchar *phone_number;
+        gchar *visited_at;
+
+        // Retrieve data from the selected row
+        gtk_tree_model_get(GTK_TREE_MODEL(liststore), &iter,
+                           0, &id,
+                           1, &first_name,
+                           2, &last_name,
+                           3, &phone_number,
+                           4, &visited_at,
+                           -1);
+
+        // Set the data in the entry fields of the popup window
+        GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_id"));
+        GtkWidget *fname_entry = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_fname"));
+        GtkWidget *lname_entry = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_lname"));
+        GtkWidget *phone_number_entry = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_phone_number"));
+        GtkWidget *visited_at_entry = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_visited_at"));
+
+        gtk_label_set_text(GTK_LABEL(id_label), g_strdup_printf("%d", id));
+        gtk_entry_set_text(GTK_ENTRY(fname_entry), first_name);
+        gtk_entry_set_text(GTK_ENTRY(lname_entry), last_name);
+        gtk_entry_set_text(GTK_ENTRY(phone_number_entry), phone_number);
+        gtk_entry_set_text(GTK_ENTRY(visited_at_entry), visited_at);
+
+        // Show the update/delete popup window
+        gtk_widget_show(UpdateDeleteCustomerPopup);
+
+        g_free(first_name);
+        g_free(last_name);
+        g_free(phone_number);
+        g_free(visited_at);
+    }
+    gtk_widget_show(UpdateDeleteCustomerPopup);
+}
+
+void on_update_customer_btn_clicked(){
+        GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_id"));
+        GtkWidget *fname_entry = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_fname"));
+        GtkWidget *lname_entry = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_lname"));
+        GtkWidget *phone_number_entry = GTK_WIDGET(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_phone_number"));
+
+    const char *id_str = gtk_label_get_text(GTK_LABEL(id_label));
+    const char *fname = gtk_entry_get_text(GTK_ENTRY(fname_entry));
+    const char *lname = gtk_entry_get_text(GTK_ENTRY(lname_entry));
+    const char *phone_number = gtk_entry_get_text(GTK_ENTRY(phone_number_entry));
+
+    int id = atoi(id_str);
+
+    if (strlen(fname) == 0 || strlen(lname) == 0 || strlen(phone_number) == 0) {
+        g_print("Invalid input: Name and Phone Number fields cannot be empty.\n");
+        return;
+    }
+
+    int result = update_customer(sock, id, fname, lname, phone_number);
+
+    if (result == 0) {
+        g_print("Customer updated successfully: %d, %s, %s, %s\n", id, fname, lname, phone_number);
+    } else {
+        g_print("Failed to update product.\n");
+    }
+
+    // Refreshing table content
+    GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(customers_builder, "customers_tv"));
+    char *response = get_customers(sock);
+    setup_customers_treeview(customers_tv, response);
+
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(customers_builder, "UpdateDeleteCustomerPopup"));
+    gtk_widget_hide(popup);
+}
+
+void on_delete_customer_btn_clicked(){
+    GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(customers_builder, "update_delete_customer_popup_id"));
+    const char *id_str = gtk_label_get_text(GTK_LABEL(id_label));
+
+    int id = atoi(id_str);
+
+    int result = delete_customer(sock, id);
+
+    if (result == 0) {
+        g_print("Customer deleted successfully: %d\n", id);
+    } else {
+        g_print("Failed to delete customer.\n");
+    }
+
+    // Refreshing table content
+    GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(customers_builder, "customers_tv"));
+    char *response = get_customers(sock);
+    setup_customers_treeview(customers_tv, response);
+
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(customers_builder, "UpdateDeleteCustomerPopup"));
+    gtk_widget_hide(popup);
+}
+
+void on_cancel2_customer_btn_clicked(){
+    gtk_widget_hide(UpdateDeleteCustomerPopup);
+}
 
 
 /* ----------------- ORDERS FUNCTIONS */

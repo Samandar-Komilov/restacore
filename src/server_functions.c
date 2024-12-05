@@ -117,6 +117,16 @@ void *handle_command(void *client_fd_ptr){
         if (strstr(buffer, "DELETE_PRODUCT|") != NULL) {
             delete_product(buffer, client_fd);
         }
+
+        if (strstr(buffer, "CREATE_CUSTOMER|") != NULL) {
+            add_customer(buffer, client_fd);
+        }
+        if (strstr(buffer, "UPDATE_CUSTOMER|") != NULL) {
+            update_customer(buffer, client_fd);
+        }
+        if (strstr(buffer, "DELETE_CUSTOMER|") != NULL) {
+            delete_customer(buffer, client_fd);
+        }
     }
 }
 
@@ -325,7 +335,6 @@ void fetch_products(int client_socket) {
 
 
 void add_product(const char *data, int sock) {
-
     char name[255];
     char priceStr[10];
     if (sscanf(data, "CREATE_PRODUCT|%254[^|]|%9[^|]", name, priceStr) != 2) {
@@ -473,6 +482,109 @@ void fetch_customers(int client_socket) {
     PQfinish(conn);
 }
 
+
+void add_customer(const char *data, int sock){
+    char fname[255], lname[255], pnumber[20], visited_at[64];
+    if (sscanf(data, "CREATE_CUSTOMER|%254[^|]|%254[^|]|%19[^|]", fname, lname, pnumber) != 3) {
+        printf("CREATE_CUSTOMER: [%s][%s][%s]\n", fname, lname, pnumber);
+        logger("ERROR", "Invalid product creation data format: %s", data);
+        fprintf(stderr, "Invalid product creation data format: %s\n", data);
+        return;
+    }
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(visited_at, sizeof(visited_at), "%Y-%m-%d %H:%M:%S", t);
+
+    const char *query = "INSERT INTO \"Customer\" (first_name, last_name, phone_number, visited_at) VALUES ($1, $2, $3, $4) RETURNING id";
+    const char *param_values[4] = { fname, lname, pnumber, visited_at };
+
+    PGresult *res = PQexecParams(conn, query, 4, NULL, param_values, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    printf("Customer added successfully.\n");
+    PQclear(res);
+}
+
+
+void update_customer(const char *data, int sock) {
+    char idStr[10], fname[255], lname[255], pnumber[20];
+    if (sscanf(data, "UPDATE_CUSTOMER|%9[^|]|%254[^|]|%254[^|]|%19[^|]", idStr, fname, lname, pnumber) != 4) {
+        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
+        logger("ERROR", "Invalid customer update data format: %s", data);
+        fprintf(stderr, "Invalid customer update data format: %s\n", data);
+        return;
+    }
+
+    printf("DEBUG::: %s %s %s %s\n", fname, lname, pnumber, idStr);
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    int id = atoi(idStr);
+
+    char query[1024];
+    snprintf(query, sizeof(query),
+         "UPDATE \"Customer\" SET first_name = '%s', last_name = '%s', phone_number = '%s' WHERE id = %d;",
+         fname, lname, pnumber, id);
+
+    printf("DEBUG:: %s\n", query);
+
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Update failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    printf("Customer updated successfully.\n");
+    PQclear(res);
+}
+
+void delete_customer(const char *data, int sock) {
+    char idStr[10];
+    if (sscanf(data, "DELETE_CUSTOMER|%9[^|]", idStr) != 1) {
+        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
+        logger("ERROR", "Invalid customer delete data format: %s", data);
+        fprintf(stderr, "Invalid customer delete data format: %s\n", data);
+        return;
+    }
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    int id = atoi(idStr);
+
+    char query[1024];
+    snprintf(query, sizeof(query),
+         "DELETE FROM \"Customer\" WHERE id = %d;", id);
+
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Delete failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    printf("Customer deleted successfully.\n");
+    PQclear(res);
+}
 
 
 /* ----------- USERS FUNCTIONS ------------ */

@@ -234,6 +234,44 @@ char* get_customers(int sock_fd) {
 }
 
 
+int add_customer(int sock_fd, const char *fname, const char *lname, const char *phone_number){
+    char message[512];
+    snprintf(message, sizeof(message), "CREATE_CUSTOMER|%s|%s|%s", fname, lname, phone_number);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send add_customer request");
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int update_customer(int sock_fd, int id, const char *fname, const char *lname, const char *phone_number){
+    char message[512];
+    snprintf(message, sizeof(message), "UPDATE_CUSTOMER|%d|%s|%s|%s", id, fname, lname, phone_number);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send update_customer request");
+        printf("Update customer request failed.\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+int delete_customer(int sock_fd, int id) {
+    char message[512];
+    snprintf(message, sizeof(message), "DELETE_CUSTOMER|%d", id);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send delete_customer request");
+        printf("Delete customer request failed.\n");
+        return 1;
+    }
+
+    return 0;
+}
 
 /* -------------- USERS FUNCTIONS -------------- */
 

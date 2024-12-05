@@ -22,6 +22,9 @@ void delete_product(const char *data, int sock);
 
 /* Customer handlers */
 void fetch_customers(int sock);
+void add_customer(const char *data, int sock);
+void update_customer(const char *data, int sock);
+void delete_customer(const char *data, int sock);
 
 /* User handlers */
 void fetch_users(int sock);

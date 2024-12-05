@@ -17,6 +17,9 @@ int delete_product(int sock_fd, int id);
 
 /* Customers handlers */
 char* get_customers(int sock_fd);
+int add_customer(int sock_fd, const char *fname, const char *lname, const char *phone_number);
+int update_customer(int sock_fd, int id, const char *fname, const char *lname, const char *phone_number);
+int delete_customer(int sock_fd, int id);
 
 /* Users handlers */
 char* get_users(int sock_fd);
