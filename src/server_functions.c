@@ -101,8 +101,14 @@ void *handle_command(void *client_fd_ptr){
         if (strstr(buffer, "GET_CUSTOMERS") != NULL) {
             fetch_customers(client_fd);
         }
+        if (strstr(buffer, "GET_CUSTOMERS_COMBOBOX") != NULL) {
+            fetch_customers_combobox(client_fd);
+        }
+        if (strstr(buffer, "GET_PRODUCTS_COMBOBOX") != NULL) {
+            fetch_products_combobox(client_fd);
+        }
         if (strstr(buffer, "GET_ORDERS") != NULL) {
-            fetch_customers(client_fd);
+            fetch_orders(client_fd);
         }
         if (strstr(buffer, "GET_USERS") != NULL) {
             fetch_users(client_fd);
@@ -584,6 +590,142 @@ void delete_customer(const char *data, int sock) {
     }
     printf("Customer deleted successfully.\n");
     PQclear(res);
+}
+
+
+/* ----------- ORDERS FUNCTIONS ------------ */
+
+void fetch_orders(int client_socket) {
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    const char *query = 
+        "SELECT o.id, "
+        "CONCAT(c.first_name, ' ', c.last_name) AS \"Customer\", "
+        "p.name AS \"Product Name\", "
+        "o.price AS \"Price\", "
+        "u.username AS \"User username\", "
+        "o.created_at AS \"Created At\" "
+        "FROM \"Order\" o "
+        "JOIN \"Customer\" c ON o.customer_id = c.id "
+        "JOIN \"User\" u ON o.user_id = u.id "
+        "JOIN \"Product\" p ON o.product_id = p.id;";
+
+    PGresult *res = PQexec(conn, query);
+
+    printf("PG Result got\n");
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQfinish(conn);
+        return;
+    }
+
+    int rows = PQntuples(res);
+    printf("ROWS response: %d\n", rows);
+    char buffer[5096];
+    memset(buffer, 0, sizeof(buffer));
+    snprintf(buffer, sizeof(buffer), "true");
+
+    for (int i = 0; i < rows; i++) {
+        snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), 
+                 "|%s,%s,%s,%s,%s,%s",
+                 PQgetvalue(res, i, 0),
+                 PQgetvalue(res, i, 1),
+                 PQgetvalue(res, i, 2),
+                 PQgetvalue(res, i, 3),
+                 PQgetvalue(res, i, 4),
+                 PQgetvalue(res, i, 5));
+    }
+
+    printf("RESPONSE: %s\n", buffer);
+
+    send(client_socket, buffer, strlen(buffer), 0);
+
+    PQclear(res);
+    PQfinish(conn);
+}
+
+void fetch_customers_combobox(int client_socket) {
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    PGresult *res = PQexec(conn, "SELECT id, CONCAT(first_name, ' ', last_name) AS \"Full Name\" FROM \"Customer\";");
+
+    printf("PG Result got\n");
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQfinish(conn);
+        return;
+    }
+
+    int rows = PQntuples(res);
+    printf("ROWS response: %d\n", rows);
+    char buffer[5096];
+    memset(buffer, 0, sizeof(buffer));
+    snprintf(buffer, sizeof(buffer), "true");
+
+    for (int i = 0; i < rows; i++) {
+        snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), 
+                 "|%s,%s",
+                 PQgetvalue(res, i, 0),
+                 PQgetvalue(res, i, 1));
+    }
+
+    printf("RESPONSE: %s\n", buffer);
+
+    send(client_socket, buffer, strlen(buffer), 0);
+
+    PQclear(res);
+    PQfinish(conn);
+}
+
+void fetch_products_combobox(int client_socket) {
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    PGresult *res = PQexec(conn, "SELECT id, name FROM \"Product\";");
+
+    printf("PG Result got\n");
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQfinish(conn);
+        return;
+    }
+
+    int rows = PQntuples(res);
+    printf("ROWS response: %d\n", rows);
+    char buffer[5096];
+    memset(buffer, 0, sizeof(buffer));
+    snprintf(buffer, sizeof(buffer), "true");
+
+    for (int i = 0; i < rows; i++) {
+        snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), 
+                 "|%s,%s",
+                 PQgetvalue(res, i, 0),
+                 PQgetvalue(res, i, 1));
+    }
+
+    printf("RESPONSE: %s\n", buffer);
+
+    send(client_socket, buffer, strlen(buffer), 0);
+
+    PQclear(res);
+    PQfinish(conn);
 }
 
 

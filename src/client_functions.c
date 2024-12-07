@@ -13,6 +13,9 @@
 char login_response[512];
 char get_products_response[5096]; // ~250 products can be returned in a single response
 char get_customers_response[5096]; // ~150 customers can be returned in a single response
+char get_orders_response[5096]; // ~250 orders can be returned in a single response
+char get_customers_combobox_response[5096]; // ~500 customers can be returned in a single response
+char get_products_combobox_response[5096]; // ~500 customers can be returned in a single response
 char get_users_response[5096]; // ~100 users can be returned in a single response
 
 
@@ -271,6 +274,83 @@ int delete_customer(int sock_fd, int id) {
     }
 
     return 0;
+}
+
+
+
+/* -------------- ORDERS FUNCTIONS -------------- */
+
+char* get_orders(int sock_fd) {
+    char message[512];
+    snprintf(message, sizeof(message), "GET_ORDERS");
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send get_orders request");
+        return "1";
+    }
+
+    int bytes_received = recv(sock_fd, get_orders_response, sizeof(get_orders_response) - 1, 0);
+    if (bytes_received <= 0) {
+        perror("Failed to receive get_orders_response");
+        return "2";
+    }
+    get_orders_response[bytes_received] = '\0';
+
+    if (strncmp(get_orders_response, "true", 4) == 0) {
+        printf("Get orders successful!");
+        return get_orders_response;
+    }
+    printf("Get orders failed.\n");
+    return "-1";
+}
+
+
+char* get_customers_combobox(int sock_fd){
+    char message[512];
+    snprintf(message, sizeof(message), "GET_CUSTOMERS_COMBOBOX");
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send get_customers_combobox request");
+        return "1";
+    }
+
+    int bytes_received = recv(sock_fd, get_customers_combobox_response, sizeof(get_customers_combobox_response) - 1, 0);
+    if (bytes_received <= 0) {
+        perror("Failed to receive get_customers_combobox response");
+        return "2";
+    }
+    get_customers_combobox_response[bytes_received] = '\0';
+
+    if (strncmp(get_customers_combobox_response, "true", 4) == 0) {
+        printf("Get customers combobox successful!\n");
+        return get_customers_combobox_response;
+    }
+    printf("Get customers combobox failed.\n");
+    return "-1";
+}
+
+char* get_products_combobox(int sock_fd){
+    char message[512];
+    snprintf(message, sizeof(message), "GET_PRODUCTS_COMBOBOX");
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send get_products_combobox request");
+        return "1";
+    }
+
+    int bytes_received = recv(sock_fd, get_products_combobox_response, sizeof(get_products_combobox_response) - 1, 0);
+    if (bytes_received <= 0) {
+        perror("Failed to receive get_products_combobox response");
+        return "2";
+    }
+    get_products_combobox_response[bytes_received] = '\0';
+
+    if (strncmp(get_products_combobox_response, "true", 4) == 0) {
+        printf("Get products combobox successful: %s\n", get_products_combobox_response);
+        return get_products_combobox_response;
+    }
+    printf("Get products combobox failed.\n");
+    return "-1";
 }
 
 /* -------------- USERS FUNCTIONS -------------- */

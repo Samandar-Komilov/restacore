@@ -13,13 +13,14 @@
 #include "logger/logger.h"
 
 // Global variables
-int sock;
+int sock, sock2;
 User current_user = {0};
 
 GtkBuilder *auth_builder;
 GtkBuilder *main_builder;
 GtkBuilder *products_builder;
 GtkBuilder *customers_builder;
+GtkBuilder *orders_builder;
 GtkBuilder *users_builder;
 GtkBuilder *profile_builder;
 
@@ -27,6 +28,7 @@ GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *IncorrectPasswo
 GtkWidget *MainPage;
 GtkWidget *ProductListPage, *AddProductPopup, *UpdateDeleteProductPopup;
 GtkWidget *CustomersListPage, *AddCustomerPopup, *UpdateDeleteCustomerPopup;
+GtkWidget *OrdersListPage, *AddOrderPopup, *UpdateDeleteOrderPopup;
 GtkWidget *UsersListPage;
 GtkWidget *ProfilePage;
 
@@ -43,6 +45,17 @@ void on_login_back_clicked();
 
 /* Orders handler prototypes */
 void on_orders_btn_clicked();
+// void on_orders_back_btn_clicked();
+void setup_orders_treeview(GtkTreeView *treeview, char *response);
+void load_customers_combobox(GtkComboBoxText *combo_box, char *response);
+void load_products_combobox(GtkComboBoxText *combo_box, char *response);
+void on_add_order_btn_clicked();
+void on_save_order_btn_clicked();
+void on_cancel_order_btn_clicked();
+// void on_order_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
+// void on_update_order_btn_clicked();
+// void on_delete_order_btn_clicked();
+// void on_cancel2_order_btn_clicked();
 
 /* Products handler prototypes */
 void on_products_btn_clicked();
@@ -97,6 +110,7 @@ int main(int argc, char* argv[]){
     main_builder = gtk_builder_new_from_file("glade/main_page.glade");
     products_builder = gtk_builder_new_from_file("glade/products.glade");
     customers_builder = gtk_builder_new_from_file("glade/customer.glade");
+    orders_builder = gtk_builder_new_from_file("glade/order.glade");
     users_builder = gtk_builder_new_from_file("glade/users.glade");
     profile_builder = gtk_builder_new_from_file("glade/profile.glade");
 
@@ -116,6 +130,10 @@ int main(int argc, char* argv[]){
     AddCustomerPopup = GTK_WIDGET(gtk_builder_get_object(customers_builder, "AddCustomerPopup"));
     UpdateDeleteCustomerPopup = GTK_WIDGET(gtk_builder_get_object(customers_builder, "UpdateDeleteCustomerPopup"));
 
+    OrdersListPage = GTK_WIDGET(gtk_builder_get_object(orders_builder, "OrderListPage"));
+    AddOrderPopup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "AddOrderPopup"));
+    UpdateDeleteOrderPopup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "UpdateDeleteOrderPopup"));
+
     UsersListPage = GTK_WIDGET(gtk_builder_get_object(users_builder, "MainPage"));
 
     ProfilePage = GTK_WIDGET(gtk_builder_get_object(profile_builder, "MainPage"));
@@ -124,6 +142,7 @@ int main(int argc, char* argv[]){
     g_signal_connect(RegisterPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); //..
     g_signal_connect(LoginPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); // will be changed
     g_signal_connect(MainPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+
     g_signal_connect(ProductListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(AddProductPopup, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(UpdateDeleteProductPopup, "destroy", G_CALLBACK(on_cancel2_product_btn_clicked), NULL);
@@ -131,6 +150,10 @@ int main(int argc, char* argv[]){
     g_signal_connect(CustomersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(AddCustomerPopup, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(UpdateDeleteCustomerPopup, "destroy", G_CALLBACK(on_cancel2_customer_btn_clicked), NULL);
+
+    g_signal_connect(OrdersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(AddOrderPopup, "destroy", G_CALLBACK(on_cancel_order_btn_clicked), NULL);
+    // g_signal_connect(UpdateDeleteOrderPopup, "destroy", G_CALLBACK(on_cancel2_order_btn_clicked), NULL);
 
     g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProfilePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
@@ -212,6 +235,29 @@ int main(int argc, char* argv[]){
     g_signal_connect(update_delete_customer_popup_delete_btn, "clicked", G_CALLBACK(on_delete_customer_btn_clicked), NULL);
     g_signal_connect(update_delete_customer_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel2_customer_btn_clicked), NULL);
 
+    // Orders Page data
+    GtkTreeView *orders_tv = GTK_TREE_VIEW(gtk_builder_get_object(orders_builder, "orders_tv"));
+    GtkListStore *order_liststore = GTK_LIST_STORE(gtk_builder_get_object(orders_builder, "order_liststore"));
+    GtkWidget *profile_btn_orders = GTK_WIDGET(gtk_builder_get_object(orders_builder, "profile_btn"));
+    GtkWidget *profile_label_orders = GTK_WIDGET(gtk_builder_get_object(orders_builder, "profile_label"));
+    GtkWidget *add_order_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "add_order_btn"));
+    GtkWidget *active_sessions_btn_orders = GTK_WIDGET(gtk_builder_get_object(orders_builder, "active_sessions_btn"));
+    GtkWidget *orders_back_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "orders_back_btn"));
+    g_signal_connect(add_order_btn, "clicked", G_CALLBACK(on_add_order_btn_clicked), NULL);
+    // g_signal_connect(orders_back_btn, "clicked", G_CALLBACK(on_orders_back_btn_clicked), NULL);
+    // g_signal_connect(orders_tv, "row-activated", G_CALLBACK(on_order_row_double_clicked), NULL);
+    // CRUD order Popup data
+    GtkWidget *create_order_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "create_order_popup_save_btn"));
+    GtkWidget *create_order_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "create_order_popup_cancel_btn"));
+    GtkWidget *update_delete_order_popup_apply_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "update_delete_order_popup_apply_btn"));
+    GtkWidget *update_delete_order_popup_delete_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "update_delete_order_popup_delete_btn"));
+    GtkWidget *update_delete_order_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "update_delete_order_popup_cancel_btn"));
+    // g_signal_connect(create_order_popup_save_btn, "clicked", G_CALLBACK(on_save_order_btn_clicked), NULL);
+    // g_signal_connect(create_order_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel_order_btn_clicked), NULL);
+    // g_signal_connect(update_delete_order_popup_apply_btn, "clicked", G_CALLBACK(on_update_order_btn_clicked), NULL);
+    // g_signal_connect(update_delete_order_popup_delete_btn, "clicked", G_CALLBACK(on_delete_order_btn_clicked), NULL);
+    // g_signal_connect(update_delete_order_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel2_order_btn_clicked), NULL);
+
 
     // Users Page data
     GtkWidget *users_back_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "users_back_btn"));
@@ -222,6 +268,7 @@ int main(int argc, char* argv[]){
     GtkWidget *profile_back_btn = GTK_WIDGET(gtk_builder_get_object(profile_builder, "profile_back_btn"));
 
     sock = connect_to_server();
+    sock2 = connect_to_server();
 
     gtk_widget_show_all(WelcomePage);
     gtk_main();
@@ -829,6 +876,231 @@ void on_cancel2_customer_btn_clicked(){
 
 
 void on_orders_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(MainPage));
+    gtk_widget_show (GTK_WIDGET(OrdersListPage));
+
+    GtkTreeView *orders_tv = GTK_TREE_VIEW(gtk_builder_get_object(orders_builder, "orders_tv"));
+
+
+    GtkCellRenderer *renderer;
+
+    // ID Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(orders_tv),
+                                                -1, "ID", renderer, "text", 0, NULL);
+
+    // First Name Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(orders_tv),
+                                                -1, "Customer", renderer, "text", 1, NULL);
+
+    // Last Name Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(orders_tv),
+                                            -1, "Product", renderer, "text", 2, NULL);
+    
+    // Phone Number Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(orders_tv),
+                                                -1, "Total Price", renderer, "text", 3, NULL);
+
+    // User Username column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(orders_tv),
+                                                -1, "User Username", renderer, "text", 4, NULL);
+    
+    // Created At Column
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(orders_tv),
+                                                -1, "Created At", renderer, "text", 5, NULL);
+
+                                                
+                                                
+    GtkTreeViewColumn *col_id = gtk_tree_view_get_column(orders_tv, 0);
+    GtkTreeViewColumn *col_customer = gtk_tree_view_get_column(orders_tv, 1);
+    GtkTreeViewColumn *col_product = gtk_tree_view_get_column(orders_tv, 2);
+    GtkTreeViewColumn *col_total_price = gtk_tree_view_get_column(orders_tv, 3);
+    GtkTreeViewColumn *col_user_username = gtk_tree_view_get_column(orders_tv, 4);
+    GtkTreeViewColumn *col_created_at = gtk_tree_view_get_column(orders_tv, 5);
+
+    gtk_tree_view_column_set_fixed_width(col_id, 30);
+    gtk_tree_view_column_set_fixed_width(col_customer, 150);
+    gtk_tree_view_column_set_fixed_width(col_product, 100);
+    gtk_tree_view_column_set_fixed_width(col_total_price, 100); 
+    gtk_tree_view_column_set_fixed_width(col_user_username, 170); 
+    gtk_tree_view_column_set_fixed_width(col_created_at, 100); 
+
+    char *response = get_orders(sock);
+    printf("TEMP DEBUG::: %s\n", response);
+    setup_orders_treeview(orders_tv, response);
+
+    printf("Orders List response: %s\n", response);
+}
+
+
+void setup_orders_treeview(GtkTreeView *treeview, char *response) {
+    printf("SETUP ORDERS TREEVIEW is working.\n");
+    GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(orders_builder, "order_liststore"));
+    gtk_list_store_clear(liststore);
+
+    char *token = strtok(response, "|"); // skip true
+    token = strtok(NULL, "|");
+
+    while (token != NULL) {
+        printf("Current token: %s\n", token);
+        guint id;
+        char* customer_name = NULL, *product_name = NULL, *user_username = NULL;
+        gint total_price;
+        char* created_at = NULL;
+
+        sscanf(token, "%d,%m[^,],%m[^,],%d,%m[^,], %m[^,]", &id, &customer_name, &product_name, &total_price, &user_username, &created_at);
+
+        printf("OrderID: %d, Customer Name: %s, Product: %s, Total Price: %d, User Username: %s, Created At: %s\n", id, customer_name, product_name, total_price, user_username, created_at);
+
+        // Add the customer to the list store
+        GtkTreeIter iter;
+        gtk_list_store_append(liststore, &iter);
+        gtk_list_store_set(liststore, &iter,
+                           0, id,
+                           1, customer_name,
+                           2, product_name,
+                           3, total_price,
+                           4, user_username,
+                           5, created_at,
+                           -1);
+
+        g_free(customer_name);
+        g_free(product_name);
+        g_free(user_username);
+        g_free(created_at);
+        token = strtok(NULL, "|");
+    }
+}
+
+void on_add_order_btn_clicked() {
+    GtkComboBoxText *combo_box_text = GTK_COMBO_BOX_TEXT(gtk_builder_get_object(orders_builder, "create_order_popup_customer_combobox"));
+    GtkComboBoxText *combo_box_text2 = GTK_COMBO_BOX_TEXT(gtk_builder_get_object(orders_builder, "create_order_popup_product_combobox"));
+
+    char *response = get_customers_combobox(sock);
+    char *response2 = get_products_combobox(sock2);
+
+    load_customers_combobox(combo_box_text, response);
+    load_products_combobox(combo_box_text2, response2);
+    
+    printf("Customer combobox response: %s\n", response);
+    printf("Product combobox response: %s\n", response2);
+
+    gtk_widget_show(AddOrderPopup);
+}
+
+
+static guint customer_ids[100];
+static int customer_count = 0;
+
+void load_customers_combobox(GtkComboBoxText *combo_box, char *response){
+    gtk_combo_box_text_remove_all(combo_box); // Clear previous entries
+    customer_count = 0;
+
+    char *token = strtok(response, "|"); // skip true
+    token = strtok(NULL, "|");
+
+    while (token != NULL) {
+        printf("Current token: %s\n", token);
+        guint id;
+        char* name = NULL;
+
+        sscanf(token, "%d,%m[^,]", &id, &name);
+
+        printf("CustomerID: %d, Customer Name: %s\n", id, name);
+        printf("Customer count: %d\n", customer_count);
+
+        // Add the customer to the combobox
+        gtk_combo_box_text_append_text(combo_box, name);
+
+        customer_ids[customer_count++] = id;
+
+        g_free(name);
+        token = strtok(NULL, "|");
+    }
+}
+
+static guint product_ids[100];
+static int product_count = 0;
+
+void load_products_combobox(GtkComboBoxText *combo_box, char *response){
+    gtk_combo_box_text_remove_all(combo_box); // Clear previous entries
+    product_count = 0;
+
+    printf("Products combobox response: %s\n", response);
+
+    char *token = strtok(response, "|"); // skip true
+    token = strtok(NULL, "|");
+
+    while (token != NULL) {
+        printf("Current token: %s\n", token);
+        guint id;
+        char* name = NULL;
+
+        sscanf(token, "%d,%m[^,]", &id, &name);
+
+        printf("ProductID: %d, Product Name: %s\n", id, name);
+        printf("Product count: %d\n", product_count);
+
+        // Add the customer to the combobox
+        gtk_combo_box_text_append_text(combo_box, name);
+
+        product_ids[product_count++] = id;
+
+        g_free(name);
+        token = strtok(NULL, "|");
+    }
+}
+
+
+void on_save_order_btn_clicked(){
+    // GtkEntry *last_name_entry = GTK_COMBO_BOX_TEXT(gtk_builder_get_object(orders_builder, "create_order_popup_customer_combobox"));
+    // GtkEntry *total_price_entry = GTK_ENTRY(gtk_builder_get_object(orders_builder, "create_order_popup_total_price"));
+
+    // const char *order_id = gtk_entry_get_text(first_name_entry);
+    // const char *customer_name = gtk_combo_box_text_get_active_text(combo_box_text);
+    // const char *pnumber = gtk_entry_get_text(phone_number_entry);
+    // int customer_id = 0;
+
+    // if (strlen(fname) == 0 || strlen(lname) == 0 || strlen(pnumber) == 0) {
+    //     g_print("Invalid input: Name and Phone Number fields cannot be empty.\n");
+    //     return;
+    // }
+
+    // if (selected_customer == NULL) {
+    //     g_print("No customer selected!\n");
+    //     return;
+    // }
+
+    // int selected_index = gtk_combo_box_get_active(GTK_COMBO_BOX(combo_box_text));
+    // int order_id_int = atoi(order_id);
+
+    // if (selected_index >= 0 && selected_index < customer_count) {
+    //     customer_id = customer_ids[selected_index];
+
+    // int result = add_order(sock, order_id_int, customer_id, total_price);
+
+    // if (result == 1) {
+    //     g_print("Order added successfully: %d, %d, %d\n", order_id_int, customer_id, total_price);
+    // } else {
+    //     g_print("Failed to add order.\n");
+    // }
+
+    // // Refreshing table content
+    // GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(customers_builder, "customers_tv"));
+    // char *response = get_customers(sock);
+    // setup_customers_treeview(customers_tv, response);
+
+    // GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(customers_builder, "AddCustomerPopup"));
+    // gtk_widget_hide(popup);
+}
+
+void on_cancel_order_btn_clicked(){
+    gtk_widget_hide(AddOrderPopup);
 }
 
 

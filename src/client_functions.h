@@ -21,6 +21,11 @@ int add_customer(int sock_fd, const char *fname, const char *lname, const char *
 int update_customer(int sock_fd, int id, const char *fname, const char *lname, const char *phone_number);
 int delete_customer(int sock_fd, int id);
 
+/* Orders handlers */
+char* get_orders(int sock_fd);
+char* get_customers_combobox(int sock_fd);
+char* get_products_combobox(int sock_fd);
+
 /* Users handlers */
 char* get_users(int sock_fd);
 
