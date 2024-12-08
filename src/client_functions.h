@@ -25,6 +25,8 @@ int delete_customer(int sock_fd, int id);
 char* get_orders(int sock_fd);
 char* get_customers_combobox(int sock_fd);
 char* get_products_combobox(int sock_fd);
+int add_order(int sock_fd, const int user_id, const int customer_id, const int product_id, const int price);
+int delete_order(int sock_fd, int id);
 
 /* Users handlers */
 char* get_users(int sock_fd);

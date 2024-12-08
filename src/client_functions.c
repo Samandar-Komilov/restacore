@@ -353,6 +353,32 @@ char* get_products_combobox(int sock_fd){
     return "-1";
 }
 
+int add_order(int sock_fd, const int user_id, const int customer_id, const int product_id, const int price){
+    char message[512];
+    snprintf(message, sizeof(message), "CREATE_ORDER|%d|%d|%d|%d", user_id, customer_id, product_id, price);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send add_order request");
+        return 1;
+    }
+
+    return 0;
+}
+
+int delete_order(int sock_fd, int id) {
+    char message[512];
+    snprintf(message, sizeof(message), "DELETE_ORDER|%d", id);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send delete_order request");
+        printf("Delete order request failed.\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+
 /* -------------- USERS FUNCTIONS -------------- */
 
 char* get_users(int sock_fd) {

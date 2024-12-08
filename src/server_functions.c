@@ -78,15 +78,9 @@ void *handle_command(void *client_fd_ptr){
         ssize_t received_bytes = recv(client_fd, buffer, sizeof(buffer), 0);
 
         if (received_bytes <= 0) {
-            if (received_bytes == 0) {
-                printf("[DISCONNECTED] Connection closed by client [%s]\n",client_ip);
-            } else {
-                perror("Error receiving data from the client");
-            }
+            printf("[DISCONNECTED] Connection closed by client [%s]\n",client_ip);
             break;
         }
-
-        printf("[CLIENT] %s\n", buffer);
         
         /* Respond to commands accordingly */
         if (strstr(buffer, "REGISTER|") != NULL) {
@@ -132,6 +126,13 @@ void *handle_command(void *client_fd_ptr){
         }
         if (strstr(buffer, "DELETE_CUSTOMER|") != NULL) {
             delete_customer(buffer, client_fd);
+        }
+
+        if (strstr(buffer, "CREATE_ORDER|") != NULL) {
+            add_order(buffer, client_fd);
+        }
+        if (strstr(buffer, "DELETE_ORDER|") != NULL) {
+            delete_order(buffer, client_fd);
         }
     }
 }
@@ -590,6 +591,7 @@ void delete_customer(const char *data, int sock) {
     }
     printf("Customer deleted successfully.\n");
     PQclear(res);
+    PQfinish(conn);
 }
 
 
@@ -724,6 +726,78 @@ void fetch_products_combobox(int client_socket) {
 
     send(client_socket, buffer, strlen(buffer), 0);
 
+    PQclear(res);
+    PQfinish(conn);
+}
+
+void add_order(const char *data, int sock){
+    int user_id, customer_id, product_id, price;
+    char created_at[64];
+    if (sscanf(data, "CREATE_ORDER|%d|%d|%d|%d", &user_id, &customer_id, &product_id, &price) != 4) {
+        logger("ERROR", "Invalid order creation data format: %s", data);
+        fprintf(stderr, "Invalid order creation data format: %s\n", data);
+        return;
+    }
+
+    printf("CREATE_ORDER: [%d][%d][%d][%d]\n", user_id, customer_id, product_id, price);
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(created_at, sizeof(created_at), "%Y-%m-%d %H:%M:%S", t);
+
+    char query[256];
+    snprintf(query, sizeof(query),
+             "INSERT INTO \"Order\" (user_id, customer_id, product_id, price, created_at) VALUES (%d, %d, %d, %d, '%s')",
+             user_id, customer_id, product_id, price, created_at);
+
+    PGresult *res = PQexec(conn, query);
+
+    printf("DEBUG::: %d %d\n", PQresultStatus(res), PGRES_COMMAND_OK);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    printf("Order added successfully.\n");
+    PQclear(res);
+}
+
+void delete_order(const char *data, int sock) {
+    char idStr[10];
+    if (sscanf(data, "DELETE_ORDER|%9[^|]", idStr) != 1) {
+        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
+        logger("ERROR", "Invalid order delete data format: %s", data);
+        fprintf(stderr, "Invalid order delete data format: %s\n", data);
+        return;
+    }
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    int id = atoi(idStr);
+
+    char query[1024];
+    snprintf(query, sizeof(query),
+         "DELETE FROM \"Order\" WHERE id = %d;", id);
+
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Delete failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    printf("Orders deleted successfully.\n");
     PQclear(res);
     PQfinish(conn);
 }

@@ -185,7 +185,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="update_delete_customer_popup_id">
+          <object class="GtkLabel" id="update_delete_order_popup_id">
             <property name="width-request">100</property>
             <property name="height-request">80</property>
             <property name="visible">True</property>
@@ -231,6 +231,28 @@
           <packing>
             <property name="x">150</property>
             <property name="y">170</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Customer:</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">90</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Product:</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">150</property>
           </packing>
         </child>
       </object>

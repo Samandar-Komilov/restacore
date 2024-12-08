@@ -185,7 +185,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="update_delete_customer_popup_id">
+          <object class="GtkLabel" id="update_delete_order_popup_id">
             <property name="width-request">100</property>
             <property name="height-request">80</property>
             <property name="visible">True</property>
