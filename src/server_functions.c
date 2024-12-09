@@ -32,17 +32,16 @@ PGconn *connect_to_db(){
     const char* DB_PORT = getenv("DB_PORT");
     char conninfo[256];
 
-    printf(">>> %s %s %s %s %s", DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT);
-
     sprintf(conninfo, "dbname=%s user=%s password=%s hostaddr=%s port=%s", DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT);
 
     PGconn *conn = PQconnectdb(conninfo);
     if (PQstatus(conn) != CONNECTION_OK) {
         fprintf(stderr, "Connection to database failed: %s", PQerrorMessage(conn));
+        logger("ERROR", "Connection to database failed: %s", PQerrorMessage(conn));
         disconnect_db(conn);
         return NULL;
     }else {
-        printf("Database connection established.\n");
+        logger("INFO", "Database connection established.\nDB_NAME: %s, DB_USER: %s, DB_PASSWORD: %s, DB_HOST: %s, DB_PORT: %s", DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT);
         return conn;
     }
 }
@@ -53,6 +52,7 @@ PGconn *connect_to_db(){
 */
 void disconnect_db(PGconn *conn) {
     PQfinish(conn);
+    logger("INFO", "Database connection closed.");
     exit(1);
 }
 
@@ -78,7 +78,7 @@ void *handle_command(void *client_fd_ptr){
         ssize_t received_bytes = recv(client_fd, buffer, sizeof(buffer), 0);
 
         if (received_bytes <= 0) {
-            printf("[DISCONNECTED] Connection closed by client [%s]\n",client_ip);
+            logger("INFO", "[DISCONNECTED] Connection closed by client [%s]",client_ip);
             break;
         }
         
@@ -145,7 +145,6 @@ void handle_login(const char *data, int client_fd){
 
     char username[100], password[100];
     if (sscanf(data, "LOGIN|%99[^|]|%99[^|]", username, password) != 2) {
-        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
         logger("ERROR", "Invalid login data format: %s", data);
         fprintf(stderr, "Invalid login data format: %s\n", data);
         return;
@@ -157,6 +156,7 @@ void handle_login(const char *data, int client_fd){
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
@@ -169,6 +169,7 @@ void handle_login(const char *data, int client_fd){
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "Failed to execute query: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Failed to execute query: %s", PQerrorMessage(conn));
         PQclear(res);
         PQfinish(conn);
         return;
@@ -225,11 +226,10 @@ void handle_register(const char* data, int client_fd) {
     if (sscanf(data, "REGISTER|%254[^|]|%254[^|]", username, password) != 2) {
         fprintf(stderr, "Invalid registration data format: %s\n", data);
         char response[] = "register_failed|invalid_format";
+        logger("ERROR", "Invalid registration data format: %s", data);
         send(client_fd, response, strlen(response), 0);
         return;
     }
-
-    printf("Registering user: %s\n", username);
 
     // Get current timestamp for created_at
     time_t now = time(NULL);
@@ -241,6 +241,7 @@ void handle_register(const char* data, int client_fd) {
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
         char response[] = "register_failed|db_connection_error";
+        logger("ERROR", "Failed to connect to the database");
         send(client_fd, response, strlen(response), 0);
         return;
     }
@@ -253,6 +254,7 @@ void handle_register(const char* data, int client_fd) {
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "Failed to insert new user: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Failed to insert new user: %s", PQerrorMessage(conn));
         PQclear(res);
         PQfinish(conn);
         char response[] = "register_failed|db_error";
@@ -262,7 +264,7 @@ void handle_register(const char* data, int client_fd) {
 
     // Retrieve the newly created customerID
     char *customer_id = PQgetvalue(res, 0, 0);
-    printf("Successfully registered user with ID: %s\n", customer_id);
+    logger("INFO", "Successfully registered user with ID: %s", customer_id);
 
     // Send success response to the client
     char response[256];
@@ -288,11 +290,12 @@ void add_user(PGconn *conn, const char *username, const char *password, const ch
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Insert failed: %s", PQerrorMessage(conn));
         PQclear(res);
         return;
     }
 
-    printf("User added successfully.\n");
+    logger("INFO", "User added successfully.");
     PQclear(res);
 }
 
@@ -303,22 +306,21 @@ void fetch_products(int client_socket) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
     PGresult *res = PQexec(conn, "SELECT id, name, price FROM \"Product\";");
 
-    printf("PG Result got\n");
-
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "SELECT query failed: %s", PQerrorMessage(conn));
         PQclear(res);
         PQfinish(conn);
         return;
     }
 
     int rows = PQntuples(res);
-    printf("ROWS response: %d\n", rows);
     char buffer[5096];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "true");
@@ -330,8 +332,6 @@ void fetch_products(int client_socket) {
                  PQgetvalue(res, i, 1),
                  PQgetvalue(res, i, 2));
     }
-
-    printf("RESPONSE: %s\n", buffer);
 
     send(client_socket, buffer, strlen(buffer), 0);
 
@@ -345,7 +345,6 @@ void add_product(const char *data, int sock) {
     char name[255];
     char priceStr[10];
     if (sscanf(data, "CREATE_PRODUCT|%254[^|]|%9[^|]", name, priceStr) != 2) {
-        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
         logger("ERROR", "Invalid product creation data format: %s", data);
         fprintf(stderr, "Invalid product creation data format: %s\n", data);
         return;
@@ -354,6 +353,7 @@ void add_product(const char *data, int sock) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
@@ -371,7 +371,7 @@ void add_product(const char *data, int sock) {
         PQclear(res);
         return;
     }
-    printf("Product added successfully.\n");
+    logger("INFO", "Product added successfully.");
     PQclear(res);
 }
 
@@ -379,7 +379,6 @@ void update_product(const char *data, int sock) {
 
     char name[255], priceStr[10], idStr[10];
     if (sscanf(data, "UPDATE_PRODUCT|%9[^|]|%254[^|]|%9[^|]", idStr, name, priceStr) != 3) {
-        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
         logger("ERROR", "Invalid product update data format: %s", data);
         fprintf(stderr, "Invalid product update data format: %s\n", data);
         return;
@@ -388,13 +387,12 @@ void update_product(const char *data, int sock) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
     int id = atoi(idStr);
     int price = atoi(priceStr);
-
-    printf("SERVER Update function is working.\n");
 
     char query[1024];
     snprintf(query, sizeof(query),
@@ -405,10 +403,11 @@ void update_product(const char *data, int sock) {
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "Update failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Update failed: %s", PQerrorMessage(conn));
         PQclear(res);
         return;
     }
-    printf("Product updated successfully.\n");
+    logger("INFO", "Product updated successfully.");
     PQclear(res);
 }
 
@@ -424,6 +423,7 @@ void delete_product(const char *data, int sock) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
@@ -438,10 +438,11 @@ void delete_product(const char *data, int sock) {
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "Delete failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Delete failed: %s", PQerrorMessage(conn));
         PQclear(res);
         return;
     }
-    printf("Product deleted successfully.\n");
+    logger("INFO", "Product deleted successfully.");
     PQclear(res);
 }
 
@@ -451,12 +452,11 @@ void fetch_customers(int client_socket) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
     PGresult *res = PQexec(conn, "SELECT id, first_name, last_name, phone_number, visited_at FROM \"Customer\";");
-
-    printf("PG Result got\n");
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
@@ -466,7 +466,6 @@ void fetch_customers(int client_socket) {
     }
 
     int rows = PQntuples(res);
-    printf("ROWS response: %d\n", rows);
     char buffer[5096];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "true");
@@ -480,8 +479,6 @@ void fetch_customers(int client_socket) {
                  PQgetvalue(res, i, 3),
                  PQgetvalue(res, i, 4));
     }
-
-    printf("RESPONSE: %s\n", buffer);
 
     send(client_socket, buffer, strlen(buffer), 0);
 
@@ -502,6 +499,7 @@ void add_customer(const char *data, int sock){
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
@@ -516,10 +514,11 @@ void add_customer(const char *data, int sock){
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Insert failed: %s", PQerrorMessage(conn));
         PQclear(res);
         return;
     }
-    printf("Customer added successfully.\n");
+    logger("INFO", "Customer added successfully.");
     PQclear(res);
 }
 
@@ -533,11 +532,10 @@ void update_customer(const char *data, int sock) {
         return;
     }
 
-    printf("DEBUG::: %s %s %s %s\n", fname, lname, pnumber, idStr);
-
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
@@ -548,16 +546,15 @@ void update_customer(const char *data, int sock) {
          "UPDATE \"Customer\" SET first_name = '%s', last_name = '%s', phone_number = '%s' WHERE id = %d;",
          fname, lname, pnumber, id);
 
-    printf("DEBUG:: %s\n", query);
-
     PGresult *res = PQexec(conn, query);
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "Update failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Update failed: %s", PQerrorMessage(conn));
         PQclear(res);
         return;
     }
-    printf("Customer updated successfully.\n");
+    logger("INFO", "Customer updated successfully.");
     PQclear(res);
 }
 
@@ -573,6 +570,7 @@ void delete_customer(const char *data, int sock) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
@@ -586,10 +584,11 @@ void delete_customer(const char *data, int sock) {
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "Delete failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Delete failed: %s", PQerrorMessage(conn));
         PQclear(res);
         return;
     }
-    printf("Customer deleted successfully.\n");
+    logger("INFO", "Customer deleted successfully.");
     PQclear(res);
     PQfinish(conn);
 }
@@ -601,6 +600,7 @@ void fetch_orders(int client_socket) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
@@ -618,17 +618,15 @@ void fetch_orders(int client_socket) {
 
     PGresult *res = PQexec(conn, query);
 
-    printf("PG Result got\n");
-
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "SELECT query failed: %s", PQerrorMessage(conn));
         PQclear(res);
         PQfinish(conn);
         return;
     }
 
     int rows = PQntuples(res);
-    printf("ROWS response: %d\n", rows);
     char buffer[5096];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "true");
@@ -644,8 +642,6 @@ void fetch_orders(int client_socket) {
                  PQgetvalue(res, i, 5));
     }
 
-    printf("RESPONSE: %s\n", buffer);
-
     send(client_socket, buffer, strlen(buffer), 0);
 
     PQclear(res);
@@ -656,22 +652,21 @@ void fetch_customers_combobox(int client_socket) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
     PGresult *res = PQexec(conn, "SELECT id, CONCAT(first_name, ' ', last_name) AS \"Full Name\" FROM \"Customer\";");
 
-    printf("PG Result got\n");
-
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "SELECT query failed: %s", PQerrorMessage(conn));
         PQclear(res);
         PQfinish(conn);
         return;
     }
 
     int rows = PQntuples(res);
-    printf("ROWS response: %d\n", rows);
     char buffer[5096];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "true");
@@ -682,8 +677,6 @@ void fetch_customers_combobox(int client_socket) {
                  PQgetvalue(res, i, 0),
                  PQgetvalue(res, i, 1));
     }
-
-    printf("RESPONSE: %s\n", buffer);
 
     send(client_socket, buffer, strlen(buffer), 0);
 
@@ -695,22 +688,21 @@ void fetch_products_combobox(int client_socket) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
     PGresult *res = PQexec(conn, "SELECT id, name FROM \"Product\";");
 
-    printf("PG Result got\n");
-
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "SELECT query failed: %s", PQerrorMessage(conn));
         PQclear(res);
         PQfinish(conn);
         return;
     }
 
     int rows = PQntuples(res);
-    printf("ROWS response: %d\n", rows);
     char buffer[5096];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "true");
@@ -721,8 +713,6 @@ void fetch_products_combobox(int client_socket) {
                  PQgetvalue(res, i, 0),
                  PQgetvalue(res, i, 1));
     }
-
-    printf("RESPONSE: %s\n", buffer);
 
     send(client_socket, buffer, strlen(buffer), 0);
 
@@ -739,11 +729,12 @@ void add_order(const char *data, int sock){
         return;
     }
 
-    printf("CREATE_ORDER: [%d][%d][%d][%d]\n", user_id, customer_id, product_id, price);
+    logger("INFO", "CREATE ORDER: [%d][%d][%d][%d]", user_id, customer_id, product_id, price);
 
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
@@ -758,21 +749,19 @@ void add_order(const char *data, int sock){
 
     PGresult *res = PQexec(conn, query);
 
-    printf("DEBUG::: %d %d\n", PQresultStatus(res), PGRES_COMMAND_OK);
-
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Insert failed: %s", PQerrorMessage(conn));
         PQclear(res);
         return;
     }
-    printf("Order added successfully.\n");
+    logger("INFO", "Order added successfully.");
     PQclear(res);
 }
 
 void delete_order(const char *data, int sock) {
     char idStr[10];
     if (sscanf(data, "DELETE_ORDER|%9[^|]", idStr) != 1) {
-        // printf("LOGIN_DATA: [%s][%s]\n", username, password);
         logger("ERROR", "Invalid order delete data format: %s", data);
         fprintf(stderr, "Invalid order delete data format: %s\n", data);
         return;
@@ -781,6 +770,7 @@ void delete_order(const char *data, int sock) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
@@ -794,10 +784,11 @@ void delete_order(const char *data, int sock) {
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "Delete failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Delete failed: %s", PQerrorMessage(conn));
         PQclear(res);
         return;
     }
-    printf("Orders deleted successfully.\n");
+    logger("INFO", "Order deleted successfully.");
     PQclear(res);
     PQfinish(conn);
 }
@@ -807,22 +798,21 @@ void fetch_order_details(int sock){
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
     PGresult *res = PQexec(conn, "SELECT id, name FROM \"Product\";");
 
-    printf("PG Result got\n");
-
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "SELECT query failed: %s", PQerrorMessage(conn));
         PQclear(res);
         PQfinish(conn);
         return;
     }
 
     int rows = PQntuples(res);
-    printf("ROWS response: %d\n", rows);
     char buffer[5096];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "true");
@@ -833,8 +823,6 @@ void fetch_order_details(int sock){
                  PQgetvalue(res, i, 0),
                  PQgetvalue(res, i, 1));
     }
-
-    printf("RESPONSE: %s\n", buffer);
 
     send(sock, buffer, strlen(buffer), 0);
 
@@ -849,22 +837,21 @@ void fetch_users(int client_socket) {
     PGconn *conn = connect_to_db();
     if (conn == NULL) {
         fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
         return;
     }
 
     PGresult *res = PQexec(conn, "SELECT id, username, password, role, created_at, first_name, last_name, email, phone_number FROM \"User\";");
 
-    printf("PG Result got\n");
-
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "SELECT query failed: %s", PQerrorMessage(conn));
         PQclear(res);
         PQfinish(conn);
         return;
     }
 
     int rows = PQntuples(res);
-    printf("ROWS response: %d\n", rows);
     char buffer[5096];
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "true");
@@ -882,8 +869,6 @@ void fetch_users(int client_socket) {
                  PQgetvalue(res, i, 7),
                  PQgetvalue(res, i, 8));
     }
-
-    printf("RESPONSE: %s\n", buffer);
 
     send(client_socket, buffer, strlen(buffer), 0);
 

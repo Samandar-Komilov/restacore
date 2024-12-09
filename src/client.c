@@ -275,6 +275,7 @@ int main(int argc, char* argv[]){
 
     // Profile Page data
     GtkWidget *profile_back_btn = GTK_WIDGET(gtk_builder_get_object(profile_builder, "profile_back_btn"));
+    g_signal_connect(profile_back_btn, "clicked", G_CALLBACK(on_profile_back_btn_clicked), NULL);
 
     sock = connect_to_server();
 
@@ -298,40 +299,38 @@ void on_register_button_clicked() {
     const char *password_register = gtk_entry_get_text(GTK_ENTRY(entry_password_register));
     const char *confirm_password_register = gtk_entry_get_text(GTK_ENTRY(entry_confirm_password_register));
 
-    printf("DEBUG::: Register/Register button clicked, credentials taken.");
-
     if (strlen(username_register) == 0 || strlen(password_register) == 0 || strlen(confirm_password_register) == 0) {
         g_print("All fields must be filled out.\n");
+        logger("ERROR", "REGISTER: All fields must be filled out.");
         gtk_widget_show(EmptyField);
         return;
     }
 
     if (strcmp(password_register, confirm_password_register) != 0) {
         g_print("Passwords do not match.\n");
+        logger("ERROR", "REGISTER: Passwords do not match.");
         gtk_widget_show(IncorrectPassword);
         return;
     }
-
-    printf("DEBUG::: Register/Register button clicked, validations approved.");
 
     // Send registration data to the server
     int status = register_user(sock, username_register, password_register);
 
     switch (status) {
     case 0:
-        g_print("Registration successful. Redirecting to login page...\n");
+        logger("INFO", "Registration successful. Redirecting to login page...");
         sleep(1);
         gtk_widget_hide (GTK_WIDGET(RegisterPage));
         gtk_widget_show (GTK_WIDGET(LoginPage));
         break;
     case 1:
-        g_print("Failed to send register request.\n");
+        logger("ERROR", "Failed to send register request.");
         break;
     case 2:
-        g_print("Failed to receive register response.\n");
+        logger("ERROR", "Failed to receive register response.");
         break;
     default:
-        g_print("Registration failed.\n");
+        logger("ERROR", "Registration failed.");
         break;
     }
 }
@@ -351,29 +350,26 @@ void on_login_button_clicked() {
 
     // Validations
     if (strlen(username_login) == 0 || strlen(password_login) == 0) {
-        g_print("All fields must be filled out.\n");
+        logger("ERROR", "LOGIN: All fields must be filled out.");
         gtk_widget_show(EmptyField);
         return;
     }
 
     if (strcmp(password_login, confirm_password_login) != 0) {
         g_print("Passwords do not match.\n");
+        logger("ERROR", "LOGIN: Passwords do not match.");
         gtk_widget_show(IncorrectPassword);
         return;
     }
 
-    logger("INFO", "Login/Login button clicked, validations approved.");
-
     char* response = login_user(sock, username_login, password_login);
 
-    printf("RESPONSE: %s\n", response);
-
     if (strcmp(response, "1") == 0) {
-        g_print("Failed to send login request.\n");
+        logger("ERROR", "Failed to send login request.");
     } else if (strcmp(response, "2") == 0) {
-        g_print("Failed to receive login response.\n");
+        logger("ERROR", "Failed to receive login response.");
     } else if (strcmp(response, "-1") == 0) {
-        g_print("Login failed. Invalid username or password. \n");
+        logger("ERROR", "Login failed. Invalid username or password.");
         gtk_widget_show(IncorrectPassword);
     }
 
@@ -384,7 +380,7 @@ void on_login_button_clicked() {
 
         char *token = strtok(response_copy, "|");  // Skip "true"
         if (token == NULL) {
-            printf("Invalid response format\n");
+            logger("ERROR", "LOGIN: Invalid response format");
             return;
         }
 
@@ -417,8 +413,8 @@ void on_login_button_clicked() {
         strncpy(current_user.phone_number, token ? token : "undefined", sizeof(current_user.phone_number));
 
 
-        printf("Login successful! ID: %d, Username: %s\n", current_user.id, current_user.username);
-        // logger("INFO", "Login successful! ID: %d, Username: %s\n", current_user->id, current_user->username);
+        // printf("Login successful! ID: %d, Username: %s\n", current_user.id, current_user.username);
+        logger("INFO", "Login successful! ID: %d, Username: %s\n", current_user.id, current_user.username);
 
         // Show Main Page with logged-in user credentials
         GtkWidget *profile_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "profile_btn"));
@@ -468,12 +464,10 @@ void on_products_btn_clicked(){
 
     char *response = get_products(sock);
 
-    printf("CLIENT.C: %s\n", response);
     setup_products_treeview(products_tv, response);
 }
 
 void setup_products_treeview(GtkTreeView *treeview, char *response) {
-    printf("SETUP PRODUCTS TREEVIEW is working.\n");
     GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(products_builder, "product_liststore"));
     gtk_list_store_clear(liststore);
 
@@ -481,16 +475,12 @@ void setup_products_treeview(GtkTreeView *treeview, char *response) {
     token = strtok(NULL, "|");
 
     while (token != NULL) {
-        printf("Current token: %s\n", token);
         guint id;
         char* name = NULL;
         gint price;
 
         sscanf(token, "%d,%m[^,],%d", &id, &name, &price);
 
-        printf("ID: %d, Name: %s, Price: %d\n", id, name, price);
-
-        // Add the product to the list store
         GtkTreeIter iter;
         gtk_list_store_append(liststore, &iter);
         gtk_list_store_set(liststore, &iter,
@@ -519,16 +509,16 @@ void on_save_product_btn_clicked(){
     int price = atoi(price_str);
 
     if (strlen(name) == 0 || price <= 0) {
-        g_print("Invalid input: Name cannot be empty and Price must be greater than 0.\n");
+        logger("ERROR", "ADD PRODUCT: Invalid input: Name cannot be empty and Price must be greater than 0.");
         return;
     }
 
     int result = add_product(sock, name, price);
 
     if (result == 1) {
-        g_print("Product added successfully: %s, %d\n", name, price);
+        logger("INFO", "Product added successfully: %s, %d", name, price);
     } else {
-        g_print("Failed to add product.\n");
+        logger("ERROR", "Failed to add product.");
     }
 
     // Refreshing table content
@@ -545,25 +535,20 @@ void on_cancel_product_btn_clicked(){
 }
 
 void on_product_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data){
-    // GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
-    // GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(products_builder, "product_liststore"));
     GtkListStore *liststore = GTK_LIST_STORE(gtk_tree_view_get_model(tree_view));
     GtkTreeIter iter;
 
-    // Get the selected row data
     if (gtk_tree_model_get_iter(GTK_TREE_MODEL(liststore), &iter, path)) {
         guint id;
         gchar *name;
         gint price;
 
-        // Retrieve data from the selected row
         gtk_tree_model_get(GTK_TREE_MODEL(liststore), &iter,
                            0, &id,
                            1, &name,
                            2, &price,
                            -1);
 
-        // Set the data in the entry fields of the popup window
         GtkWidget *id_label = GTK_WIDGET(gtk_builder_get_object(products_builder, "update_delete_product_popup_id"));
         GtkWidget *name_entry = GTK_WIDGET(gtk_builder_get_object(products_builder, "update_delete_product_popup_name"));
         GtkWidget *price_entry = GTK_WIDGET(gtk_builder_get_object(products_builder, "update_delete_product_popup_price"));
@@ -572,10 +557,8 @@ void on_product_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, Gt
         gtk_entry_set_text(GTK_ENTRY(name_entry), name);
         gtk_entry_set_text(GTK_ENTRY(price_entry), g_strdup_printf("%d", price));
 
-        // Show the update/delete popup window
         gtk_widget_show(UpdateDeleteProductPopup);
 
-        // Free the allocated memory for name
         g_free(name);
     }
     gtk_widget_show(UpdateDeleteProductPopup);
@@ -594,16 +577,16 @@ void on_update_product_btn_clicked(){
     int price = atoi(price_str);
 
     if (strlen(name) == 0 || price <= 0) {
-        g_print("Invalid input: Name cannot be empty and Price must be greater than 0.\n");
+        logger("ERROR", "UPDATE PRODUCT: Invalid input: Name cannot be empty and Price must be greater than 0.");
         return;
     }
 
     int result = update_product(sock, id, name, price);
 
     if (result == 0) {
-        g_print("Product added successfully: %d %s, %d\n", id, name, price);
+        logger("INFO", "Product added successfully: %d %s, %d", id, name, price);
     } else {
-        g_print("Failed to update product.\n");
+        logger("ERROR", "Failed to update product.");
     }
 
     // Refreshing table content
@@ -624,9 +607,9 @@ void on_delete_product_btn_clicked(){
     int result = delete_product(sock, id);
 
     if (result == 0) {
-        g_print("Product added successfully: %d\n", id);
+        logger("INFO", "Product added successfully: %d", id);
     } else {
-        g_print("Failed to update product.\n");
+        logger("ERROR", "Failed to update product.");
     }
 
     // Refreshing table content
@@ -694,12 +677,11 @@ void on_customers_btn_clicked(){
     char *response = get_customers(sock);
     setup_customers_treeview(customers_tv, response);
 
-    printf("Customers List response: %s\n", response);
+    logger("INFO", "Customers List response: %s", response);
 }
 
 
 void setup_customers_treeview(GtkTreeView *treeview, char *response) {
-    printf("SETUP CUSTOMERS TREEVIEW is working.\n");
     GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(customers_builder, "customer_liststore"));
     gtk_list_store_clear(liststore);
 
@@ -707,13 +689,10 @@ void setup_customers_treeview(GtkTreeView *treeview, char *response) {
     token = strtok(NULL, "|");
 
     while (token != NULL) {
-        printf("Current token: %s\n", token);
         guint id;
         char* name = NULL, *first_name = NULL, *last_name = NULL, *phone_number = NULL, *visited_at = NULL;
 
         sscanf(token, "%d,%m[^,],%m[^,],%m[^,],%m[^,]", &id, &first_name, &last_name, &phone_number, &visited_at);
-
-        printf("First Name: %s, Last Name: %s, Phone Number: %s, Visited At: %s\n", first_name, last_name, phone_number, visited_at);
 
         // Add the customer to the list store
         GtkTreeIter iter;
@@ -746,16 +725,16 @@ void on_save_customer_btn_clicked(){
     const char *pnumber = gtk_entry_get_text(phone_number_entry);
 
     if (strlen(fname) == 0 || strlen(lname) == 0 || strlen(pnumber) == 0) {
-        g_print("Invalid input: Name and Phone Number fields cannot be empty.\n");
+        logger("ERROR", "CREATE CUSTOMER: Invalid input: Name and Phone Number fields cannot be empty.");
         return;
     }
 
     int result = add_customer(sock, fname, lname, pnumber);
 
     if (result == 1) {
-        g_print("Customer added successfully: %s, %s %s\n", fname, lname, pnumber);
+        logger("INFO", "Customer added successfully: %s, %s %s", fname, lname, pnumber);
     } else {
-        g_print("Failed to add customer.\n");
+        logger("ERROR", "Failed to add customer: %s, %s %s", fname, lname, pnumber);
     }
 
     // Refreshing table content
@@ -831,16 +810,16 @@ void on_update_customer_btn_clicked(){
     int id = atoi(id_str);
 
     if (strlen(fname) == 0 || strlen(lname) == 0 || strlen(phone_number) == 0) {
-        g_print("Invalid input: Name and Phone Number fields cannot be empty.\n");
+        logger("ERROR", "UPDATE CUSTOMER: Invalid input: Name and Phone Number fields cannot be empty.");
         return;
     }
 
     int result = update_customer(sock, id, fname, lname, phone_number);
 
     if (result == 0) {
-        g_print("Customer updated successfully: %d, %s, %s, %s\n", id, fname, lname, phone_number);
+        logger("INFO", "Customer updated successfully: %d, %s, %s, %s", id, fname, lname, phone_number);
     } else {
-        g_print("Failed to update product.\n");
+        logger("INFO", "Failed to update customer: %d, %s, %s, %s", id, fname, lname, phone_number);
     }
 
     // Refreshing table content
@@ -861,9 +840,9 @@ void on_delete_customer_btn_clicked(){
     int result = delete_customer(sock, id);
 
     if (result == 0) {
-        g_print("Customer deleted successfully: %d\n", id);
+        logger("INFO", "Customer deleted successfully: %d", id);
     } else {
-        g_print("Failed to delete customer.\n");
+        logger("ERROR", "Failed to delete customer: %d", id);
     }
 
     // Refreshing table content
@@ -939,15 +918,11 @@ void on_orders_btn_clicked(){
     gtk_tree_view_column_set_fixed_width(col_created_at, 100); 
 
     char *response = get_orders(sock);
-    printf("TEMP DEBUG::: %s\n", response);
     setup_orders_treeview(orders_tv, response);
-
-    printf("Orders List response: %s\n", response);
 }
 
 
 void setup_orders_treeview(GtkTreeView *treeview, char *response) {
-    printf("SETUP ORDERS TREEVIEW is working.\n");
     GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(orders_builder, "order_liststore"));
     gtk_list_store_clear(liststore);
 
@@ -955,7 +930,6 @@ void setup_orders_treeview(GtkTreeView *treeview, char *response) {
     token = strtok(NULL, "|");
 
     while (token != NULL) {
-        printf("Current token: %s\n", token);
         guint id;
         char* customer_name = NULL, *product_name = NULL, *user_username = NULL;
         gint total_price;
@@ -963,9 +937,6 @@ void setup_orders_treeview(GtkTreeView *treeview, char *response) {
 
         sscanf(token, "%d,%m[^,],%m[^,],%d,%m[^,], %m[^,]", &id, &customer_name, &product_name, &total_price, &user_username, &created_at);
 
-        printf("OrderID: %d, Customer Name: %s, Product: %s, Total Price: %d, User Username: %s, Created At: %s\n", id, customer_name, product_name, total_price, user_username, created_at);
-
-        // Add the customer to the list store
         GtkTreeIter iter;
         gtk_list_store_append(liststore, &iter);
         gtk_list_store_set(liststore, &iter,
@@ -991,12 +962,10 @@ void on_add_order_btn_clicked() {
 
     char *response = get_customers_combobox(sock);
     load_customers_combobox(combo_box_text, response);
-    printf("Customer combobox response: %s\n", response);
 
     sock2 = connect_to_server();
     char *response2 = get_products_combobox(sock2);
     load_products_combobox(combo_box_text2, response2);
-    printf("Product combobox response: %s\n", response2);
 
     disconnect_from_server(sock2);
 
@@ -1015,14 +984,10 @@ void load_customers_combobox(GtkComboBoxText *combo_box, char *response){
     token = strtok(NULL, "|");
 
     while (token != NULL) {
-        printf("Current token: %s\n", token);
         guint id;
         char* name = NULL;
 
         sscanf(token, "%d,%m[^,]", &id, &name);
-
-        printf("CustomerID: %d, Customer Name: %s\n", id, name);
-        printf("Customer count: %d\n", customer_count);
 
         // Add the customer to the combobox
         gtk_combo_box_text_append_text(combo_box, name);
@@ -1041,20 +1006,14 @@ void load_products_combobox(GtkComboBoxText *combo_box, char *response){
     gtk_combo_box_text_remove_all(combo_box); // Clear previous entries
     product_count = 0;
 
-    printf("Products combobox response: %s\n", response);
-
     char *token = strtok(response, "|"); // skip true
     token = strtok(NULL, "|");
 
     while (token != NULL) {
-        printf("Current token: %s\n", token);
         guint id;
         char* name = NULL;
 
         sscanf(token, "%d,%m[^,]", &id, &name);
-
-        printf("ProductID: %d, Product Name: %s\n", id, name);
-        printf("Product count: %d\n", product_count);
 
         // Add the customer to the combobox
         gtk_combo_box_text_append_text(combo_box, name);
@@ -1081,17 +1040,17 @@ void on_save_order_btn_clicked(){
     int user_id = current_user.id;
 
     if (strlen(customer_name) == 0 || strlen(product_name) == 0 || strlen(price) == 0) {
-        g_print("Invalid input: Name and Phone Number fields cannot be empty.\n");
+        logger("INFO", "ADD ORDER: Invalid input: Name and Phone Number fields cannot be empty.");
         return;
     }
 
     if (customer_name == NULL) {
-        g_print("No customer selected!\n");
+        logger("ERROR", "ADD ORDER: No customer selected!");
         return;
     }
 
     if (product_name == NULL) {
-        g_print("No product selected!\n");
+        logger("ERROR", "ADD ORDER: No product selected!");
         return;
     }
 
@@ -1108,13 +1067,11 @@ void on_save_order_btn_clicked(){
 
     int result = add_order(sock, user_id, customer_id, product_id, price_int);
 
-    printf("Add order result: %d\n", result);
-
     if (result != 0) {
-        g_print("Failed to add order.\n");
+        logger("ERROR", "ADD ORDER: Failed to add order.");
     }
     
-    g_print("Order added successfully by %s: %s, %s, %d\n", current_user.username, customer_name, product_name, price_int);
+    logger("INFO", "Order added successfully by %s: %s, %s, %d", current_user.username, customer_name, product_name, price_int);
     usleep(100000);  // 100ms delay
 
     // Refreshing table content
@@ -1137,21 +1094,17 @@ void on_order_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkT
     GtkListStore *liststore = GTK_LIST_STORE(gtk_tree_view_get_model(tree_view));
     GtkTreeIter iter;
 
-    // Get the selected row data
     if (gtk_tree_model_get_iter(GTK_TREE_MODEL(liststore), &iter, path)) {
         guint id;
 
-        // Retrieve data from the selected row
         gtk_tree_model_get(GTK_TREE_MODEL(liststore), &iter,
                            0, &id,
                            -1);
 
-        // Set the data in the entry fields of the popup window
         GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(orders_builder, "order_delete_id_label"));
 
         gtk_label_set_text(GTK_LABEL(id_label), g_strdup_printf("%d", id));
 
-        // Show the update/delete popup window
         gtk_widget_show(DeleteOrderPopup);
 
     }
@@ -1220,9 +1173,9 @@ void on_delete_order_btn_clicked(){
     int result = delete_order(sock, id);
 
     if (result == 0) {
-        g_print("Order deleted successfully: %d\n", id);
+        logger("INFO", "Order deleted successfully: %d", id);
     } else {
-        g_print("Failed to delete order.\n");
+        logger("ERROR", "Failed to delete order: %d", id);
     }
 
     // Refreshing table content
@@ -1246,8 +1199,6 @@ void on_users_btn_clicked(){
     GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
 
     char *response = get_users(sock);
-
-    printf("Users List response: %s\n", response);
 }
 
 
