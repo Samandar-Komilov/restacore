@@ -30,6 +30,7 @@ void delete_customer(const char *data, int sock);
 void fetch_orders(int sock);
 void fetch_customers_combobox(int sock);
 void fetch_products_combobox(int sock);
+void fetch_order_details(int sock);
 void add_order(const char *data, int sock);
 void delete_order(const char *data, int sock);
 

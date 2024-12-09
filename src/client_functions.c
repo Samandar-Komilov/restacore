@@ -16,6 +16,7 @@ char get_customers_response[5096]; // ~150 customers can be returned in a single
 char get_orders_response[5096]; // ~250 orders can be returned in a single response
 char get_customers_combobox_response[5096]; // ~500 customers can be returned in a single response
 char get_products_combobox_response[5096]; // ~500 customers can be returned in a single response
+char get_order_details_response[5096]; // ~200 customers can be returned in a single response
 char get_users_response[5096]; // ~100 users can be returned in a single response
 
 
@@ -376,6 +377,31 @@ int delete_order(int sock_fd, int id) {
     }
 
     return 0;
+}
+
+// Not used for now
+char* get_order_details(int sock_fd){
+    char message[512];
+    snprintf(message, sizeof(message), "GET_ORDER_DETAILS");
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send GET_ORDER_DETAILS request");
+        return "1";
+    }
+
+    int bytes_received = recv(sock_fd, get_order_details_response, sizeof(get_order_details_response) - 1, 0);
+    if (bytes_received <= 0) {
+        perror("Failed to receive GET_ORDER_DETAILS response");
+        return "2";
+    }
+    get_order_details_response[bytes_received] = '\0';
+
+    if (strncmp(get_order_details_response, "true", 4) == 0) {
+        printf("Get products combobox successful: %s\n", get_order_details_response);
+        return get_order_details_response;
+    }
+    printf("GET_ORDER_DETAILS failed.\n");
+    return "-1";
 }
 
 

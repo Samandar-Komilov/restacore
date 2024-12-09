@@ -803,6 +803,46 @@ void delete_order(const char *data, int sock) {
 }
 
 
+void fetch_order_details(int sock){
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        return;
+    }
+
+    PGresult *res = PQexec(conn, "SELECT id, name FROM \"Product\";");
+
+    printf("PG Result got\n");
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQfinish(conn);
+        return;
+    }
+
+    int rows = PQntuples(res);
+    printf("ROWS response: %d\n", rows);
+    char buffer[5096];
+    memset(buffer, 0, sizeof(buffer));
+    snprintf(buffer, sizeof(buffer), "true");
+
+    for (int i = 0; i < rows; i++) {
+        snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), 
+                 "|%s,%s",
+                 PQgetvalue(res, i, 0),
+                 PQgetvalue(res, i, 1));
+    }
+
+    printf("RESPONSE: %s\n", buffer);
+
+    send(sock, buffer, strlen(buffer), 0);
+
+    PQclear(res);
+    PQfinish(conn);
+}
+
+
 /* ----------- USERS FUNCTIONS ------------ */
 
 void fetch_users(int client_socket) {

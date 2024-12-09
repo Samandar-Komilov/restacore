@@ -116,6 +116,75 @@
       </object>
     </child>
   </object>
+  <object class="GtkWindow" id="DeleteOrderPopup">
+    <property name="width-request">500</property>
+    <property name="height-request">0</property>
+    <property name="can-focus">False</property>
+    <property name="resizable">False</property>
+    <child>
+      <object class="GtkFixed">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkLabel" id="delete_order_label">
+            <property name="width-request">400</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Are you sure you want to delete this order?</property>
+            <attributes>
+              <attribute name="size" value="15000"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">50</property>
+            <property name="y">70</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="delete_order_yes">
+            <property name="label">gtk-yes</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">130</property>
+            <property name="y">120</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="delete_order_no">
+            <property name="label">gtk-no</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">270</property>
+            <property name="y">120</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="order_delete_id_label">
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">label</property>
+          </object>
+          <packing>
+            <property name="x">72</property>
+            <property name="y">195</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
   <object class="GtkWindow" id="UpdateDeleteOrderPopup">
     <property name="can-focus">False</property>
     <child>

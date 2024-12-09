@@ -28,7 +28,7 @@ GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *IncorrectPasswo
 GtkWidget *MainPage;
 GtkWidget *ProductListPage, *AddProductPopup, *UpdateDeleteProductPopup;
 GtkWidget *CustomersListPage, *AddCustomerPopup, *UpdateDeleteCustomerPopup;
-GtkWidget *OrdersListPage, *AddOrderPopup, *UpdateDeleteOrderPopup;
+GtkWidget *OrdersListPage, *AddOrderPopup, *UpdateDeleteOrderPopup, *DeleteOrderPopup;
 GtkWidget *UsersListPage;
 GtkWidget *ProfilePage;
 
@@ -53,10 +53,11 @@ void on_add_order_btn_clicked();
 void on_save_order_btn_clicked();
 void on_cancel_order_btn_clicked();
 void on_orders_back_btn_clicked();
-void on_order_row_double_clicked();
+void on_order_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data);
 // void on_update_order_btn_clicked();
 void on_delete_order_btn_clicked();
 // void on_cancel2_order_btn_clicked();
+void on_order_delete_no_btn_clicked();
 
 /* Products handler prototypes */
 void on_products_btn_clicked();
@@ -134,6 +135,7 @@ int main(int argc, char* argv[]){
     OrdersListPage = GTK_WIDGET(gtk_builder_get_object(orders_builder, "OrderListPage"));
     AddOrderPopup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "AddOrderPopup"));
     UpdateDeleteOrderPopup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "UpdateDeleteOrderPopup"));
+    DeleteOrderPopup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "DeleteOrderPopup"));
 
     UsersListPage = GTK_WIDGET(gtk_builder_get_object(users_builder, "MainPage"));
 
@@ -155,6 +157,7 @@ int main(int argc, char* argv[]){
     g_signal_connect(OrdersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(AddOrderPopup, "destroy", G_CALLBACK(on_cancel_order_btn_clicked), NULL);
     // g_signal_connect(UpdateDeleteOrderPopup, "destroy", G_CALLBACK(on_cancel2_order_btn_clicked), NULL);
+    g_signal_connect(DeleteOrderPopup, "destroy", G_CALLBACK(on_order_delete_no_btn_clicked), NULL);
 
     g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProfilePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
@@ -253,11 +256,15 @@ int main(int argc, char* argv[]){
     GtkWidget *update_delete_order_popup_apply_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "update_delete_order_popup_apply_btn"));
     GtkWidget *update_delete_order_popup_delete_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "update_delete_order_popup_delete_btn"));
     GtkWidget *update_delete_order_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "update_delete_order_popup_cancel_btn"));
+    GtkWidget *delete_order_yes = GTK_WIDGET(gtk_builder_get_object(orders_builder, "delete_order_yes"));
+    GtkWidget *delete_order_no = GTK_WIDGET(gtk_builder_get_object(orders_builder, "delete_order_no"));
     g_signal_connect(create_order_popup_save_btn, "clicked", G_CALLBACK(on_save_order_btn_clicked), NULL);
     g_signal_connect(create_order_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel_order_btn_clicked), NULL);
-    g_signal_connect(orders_tv, "row-activated", G_CALLBACK(on_customer_row_double_clicked), NULL);
+    g_signal_connect(orders_tv, "row-activated", G_CALLBACK(on_order_row_double_clicked), NULL);
     // g_signal_connect(update_delete_order_popup_apply_btn, "clicked", G_CALLBACK(on_update_order_btn_clicked), NULL);
-    g_signal_connect(update_delete_order_popup_delete_btn, "clicked", G_CALLBACK(on_delete_order_btn_clicked), NULL);
+    g_signal_connect(delete_order_yes, "clicked", G_CALLBACK(on_delete_order_btn_clicked), NULL);
+    g_signal_connect(delete_order_no, "clicked", G_CALLBACK(on_order_delete_no_btn_clicked), NULL);
+    
     // g_signal_connect(update_delete_order_popup_cancel_btn, "clicked", G_CALLBACK(on_cancel2_order_btn_clicked), NULL);
 
 
@@ -1125,9 +1132,88 @@ void on_cancel_order_btn_clicked(){
     gtk_widget_hide(AddOrderPopup);
 }
 
+void on_order_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data){
+    GtkTreeView *orders_tv = GTK_TREE_VIEW(gtk_builder_get_object(orders_builder, "orders_tv"));
+    GtkListStore *liststore = GTK_LIST_STORE(gtk_tree_view_get_model(tree_view));
+    GtkTreeIter iter;
+
+    // Get the selected row data
+    if (gtk_tree_model_get_iter(GTK_TREE_MODEL(liststore), &iter, path)) {
+        guint id;
+
+        // Retrieve data from the selected row
+        gtk_tree_model_get(GTK_TREE_MODEL(liststore), &iter,
+                           0, &id,
+                           -1);
+
+        // Set the data in the entry fields of the popup window
+        GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(orders_builder, "order_delete_id_label"));
+
+        gtk_label_set_text(GTK_LABEL(id_label), g_strdup_printf("%d", id));
+
+        // Show the update/delete popup window
+        gtk_widget_show(DeleteOrderPopup);
+
+    }
+}
+
+// void on_delete_order_btn_clicked(){
+//     GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(orders_builder, "update_delete_order_popup_id"));
+//     const char *id_str = gtk_label_get_text(GTK_LABEL(id_label));
+
+//     int id = atoi(id_str);
+
+//     int result = delete_order(sock, id);
+
+//     if (result == 0) {
+//         g_print("Order deleted successfully: %d\n", id);
+//     } else {
+//         g_print("Failed to delete order.\n");
+//     }
+
+//     // Refreshing table content
+//     GtkTreeView *orders_tv = GTK_TREE_VIEW(gtk_builder_get_object(orders_builder, "orders_tv"));
+//     char *response = get_orders(sock);
+//     setup_orders_treeview(orders_tv, response);
+
+//     GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "UpdateDeleteOrderPopup"));
+//     gtk_widget_hide(popup);
+// }
+
+
+void on_orders_back_btn_clicked(){
+    gtk_widget_hide (GTK_WIDGET(OrdersListPage));
+    gtk_widget_show (GTK_WIDGET(MainPage));
+}
+
+// void on_order_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data){
+//     GtkComboBoxText *combo_box_text = GTK_COMBO_BOX_TEXT(gtk_builder_get_object(orders_builder, "create_order_popup_customer_combobox"));
+//     GtkComboBoxText *combo_box_text2 = GTK_COMBO_BOX_TEXT(gtk_builder_get_object(orders_builder, "create_order_popup_product_combobox"));
+
+//     char *response = get_customers_combobox(sock);
+//     load_customers_combobox(combo_box_text, response);
+//     printf("Customer combobox response: %s\n", response);
+
+//     sock2 = connect_to_server();
+//     char *response2 = get_products_combobox(sock2);
+//     load_products_combobox(combo_box_text2, response2);
+//     printf("Product combobox response: %s\n", response2);
+
+//     char *response3 = get_order_details(sock2, id);
+
+//     disconnect_from_server(sock2);
+
+//     gtk_widget_show (GTK_WIDGET(UpdateDeleteOrderPopup));
+// }
+
+void on_order_delete_no_btn_clicked(){
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "DeleteOrderPopup"));
+    gtk_widget_hide(popup);
+}
+
 void on_delete_order_btn_clicked(){
-    GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(orders_builder, "update_delete_order_popup_id"));
-    const char *id_str = gtk_label_get_text(GTK_LABEL(id_label));
+    GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(orders_builder, "order_delete_id_label"));
+    const char *id_str = gtk_label_get_text(id_label);
 
     int id = atoi(id_str);
 
@@ -1144,18 +1230,8 @@ void on_delete_order_btn_clicked(){
     char *response = get_orders(sock);
     setup_orders_treeview(orders_tv, response);
 
-    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "UpdateDeleteOrderPopup"));
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "DeleteOrderPopup"));
     gtk_widget_hide(popup);
-}
-
-
-void on_orders_back_btn_clicked(){
-    gtk_widget_hide (GTK_WIDGET(OrdersListPage));
-    gtk_widget_show (GTK_WIDGET(MainPage));
-}
-
-void on_order_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data){
-    gtk_widget_show (GTK_WIDGET(UpdateDeleteOrderPopup));
 }
 
 
