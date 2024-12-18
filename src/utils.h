@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include "dotenv/dotenv.h"
 
@@ -10,12 +13,28 @@
 extern const char* SERVER_ADDRESS;
 extern int PORT;
 extern int MAX_BUFFER;
+extern int active_session_count;
 
 void init_config();
 
 // #define PORT 8088
 // #define MAX_BUFFER 1024
 // #define SERVER_ADDRESS "192.168.0.105"
+#define MAX_SESSIONS 10
+#define USERNAME_LENGTH 50
+#define IP_LENGTH 16
+
+
+typedef struct {
+    char ip_address[IP_LENGTH];
+    char username[USERNAME_LENGTH];
+    bool active;
+} Session;
+
+
+bool add_session(const char *ip, const char *username);
+void remove_session(const char *ip);
+void list_sessions();
 
 
 typedef struct {
