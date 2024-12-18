@@ -133,7 +133,7 @@
             <property name="label" translatable="yes">Login</property>
             <attributes>
               <attribute name="font-desc" value="Sans Bold 32"/>
-              <attribute name="foreground" value="#3fff6f90bfff"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
             </attributes>
           </object>
           <packing>
@@ -248,7 +248,7 @@
             <property name="label" translatable="yes">Register</property>
             <attributes>
               <attribute name="font-desc" value="Sans Bold 32"/>
-              <attribute name="foreground" value="#3fff6f90bfff"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
             </attributes>
           </object>
           <packing>
@@ -367,7 +367,7 @@
             <property name="label" translatable="yes">Welcome to BistroSync</property>
             <attributes>
               <attribute name="font-desc" value="Sans Bold 32"/>
-              <attribute name="foreground" value="#3fff6f90bfff"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
             </attributes>
           </object>
           <packing>
@@ -410,7 +410,7 @@
             <property name="label" translatable="yes">The best Restaurant Management System in Uzbekistan</property>
             <attributes>
               <attribute name="font-desc" value="Rasa Light 10"/>
-              <attribute name="foreground" value="#1a1a5f5fb4b4"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
               <attribute name="size" value="20000"/>
             </attributes>
             <style>

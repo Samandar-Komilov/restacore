@@ -70,7 +70,7 @@
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Users List</property>
             <attributes>
-              <attribute name="foreground" value="#1a1a5f5fb4b4"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
               <attribute name="size" value="30000"/>
             </attributes>
           </object>
@@ -116,7 +116,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="customers_back_btn">
+          <object class="GtkButton" id="users_back_btn">
             <property name="label">gtk-go-back</property>
             <property name="width-request">80</property>
             <property name="visible">True</property>

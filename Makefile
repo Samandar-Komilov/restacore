@@ -24,4 +24,10 @@ $(BUILD_DIR)/client: src/client.c src/client_functions.c src/utils.h src/dotenv/
 clean:
 	rm -rf $(BUILD_DIR)/*
 
+runserver: $(BUILD_DIR)/server
+	$(BUILD_DIR)/server
+	
+runclient: $(BUILD_DIR)/client
+	$(BUILD_DIR)/client
+
 # client src/gui/login.c

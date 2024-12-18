@@ -32,6 +32,9 @@ GtkWidget *OrdersListPage, *AddOrderPopup, *UpdateDeleteOrderPopup, *DeleteOrder
 GtkWidget *UsersListPage;
 GtkWidget *ProfilePage;
 
+void on_incorrect_password_ok_clicked();
+void on_empty_field_ok_clicked();
+
 
 /* Auth handler prototypes */
 void on_login_button_main_clicked();
@@ -97,6 +100,10 @@ void on_cancel2_user_btn_clicked();
 
 /* Profile handler prototypes */
 void on_profile_btn_clicked();
+void on_profile_btn_products_clicked();
+void on_profile_btn_orders_clicked();
+void on_profile_btn_users_clicked();
+void on_profile_btn_customers_clicked();
 void on_profile_back_btn_clicked();
 
 
@@ -204,6 +211,7 @@ int main(int argc, char* argv[]){
     GtkWidget *active_sessions_btn_products = GTK_WIDGET(gtk_builder_get_object(products_builder, "active_sessions_btn"));
     g_signal_connect(add_product_btn, "clicked", G_CALLBACK(on_add_product_btn_clicked), NULL);
     g_signal_connect(products_tv, "row-activated", G_CALLBACK(on_product_row_double_clicked), NULL);
+    g_signal_connect(profile_btn_products, "clicked", G_CALLBACK(on_profile_btn_products_clicked), NULL);
     // CRUD product Popup data
     GtkWidget *create_product_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_save_btn"));
     GtkWidget *create_product_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_cancel_btn"));
@@ -227,6 +235,7 @@ int main(int argc, char* argv[]){
     g_signal_connect(add_customer_btn, "clicked", G_CALLBACK(on_add_customer_btn_clicked), NULL);
     g_signal_connect(customers_back_btn, "clicked", G_CALLBACK(on_customers_back_btn_clicked), NULL);
     g_signal_connect(customers_tv, "row-activated", G_CALLBACK(on_customer_row_double_clicked), NULL);
+    g_signal_connect(profile_btn_customers, "clicked", G_CALLBACK(on_profile_btn_customers_clicked), NULL);
     // CRUD customer Popup data
     GtkWidget *create_customer_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "create_customer_popup_save_btn"));
     GtkWidget *create_customer_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "create_customer_popup_cancel_btn"));
@@ -250,6 +259,7 @@ int main(int argc, char* argv[]){
     g_signal_connect(add_order_btn, "clicked", G_CALLBACK(on_add_order_btn_clicked), NULL);
     g_signal_connect(orders_back_btn, "clicked", G_CALLBACK(on_orders_back_btn_clicked), NULL);
     g_signal_connect(orders_tv, "row-activated", G_CALLBACK(on_order_row_double_clicked), NULL);
+    g_signal_connect(profile_btn_orders, "clicked", G_CALLBACK(on_profile_btn_orders_clicked), NULL);
     // CRUD order Popup data
     GtkWidget *create_order_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "create_order_popup_save_btn"));
     GtkWidget *create_order_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "create_order_popup_cancel_btn"));
@@ -269,9 +279,11 @@ int main(int argc, char* argv[]){
 
 
     // Users Page data
+    GtkWidget *profile_btn_users = GTK_WIDGET(gtk_builder_get_object(users_builder, "profile_btn"));
     GtkWidget *users_back_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "users_back_btn"));
     GtkListStore *user_liststore = GTK_LIST_STORE(gtk_builder_get_object(users_builder, "user_liststore"));
     g_signal_connect(users_back_btn, "clicked", G_CALLBACK(on_users_back_btn_clicked), NULL);
+    g_signal_connect(profile_btn_users, "clicked", G_CALLBACK(on_profile_btn_users_clicked), NULL);
 
     // Profile Page data
     GtkWidget *profile_back_btn = GTK_WIDGET(gtk_builder_get_object(profile_builder, "profile_back_btn"));
@@ -352,6 +364,8 @@ void on_login_button_clicked() {
     if (strlen(username_login) == 0 || strlen(password_login) == 0) {
         logger("ERROR", "LOGIN: All fields must be filled out.");
         gtk_widget_show(EmptyField);
+        GtkWidget *empty_field_ok = GTK_WIDGET(gtk_builder_get_object(auth_builder, "empty_field_ok"));
+        g_signal_connect(empty_field_ok, "clicked", G_CALLBACK(on_empty_field_ok_clicked), NULL);
         return;
     }
 
@@ -359,6 +373,8 @@ void on_login_button_clicked() {
         g_print("Passwords do not match.\n");
         logger("ERROR", "LOGIN: Passwords do not match.");
         gtk_widget_show(IncorrectPassword);
+        GtkWidget *incorrect_password_ok = GTK_WIDGET(gtk_builder_get_object(auth_builder, "incorrect_password_ok"));
+        g_signal_connect(incorrect_password_ok, "clicked", G_CALLBACK(on_incorrect_password_ok_clicked), NULL);
         return;
     }
 
@@ -371,6 +387,8 @@ void on_login_button_clicked() {
     } else if (strcmp(response, "-1") == 0) {
         logger("ERROR", "Login failed. Invalid username or password.");
         gtk_widget_show(IncorrectPassword);
+        GtkWidget *incorrect_password_ok = GTK_WIDGET(gtk_builder_get_object(auth_builder, "incorrect_password_ok"));
+        g_signal_connect(incorrect_password_ok, "clicked", G_CALLBACK(on_incorrect_password_ok_clicked), NULL);
     }
 
     if (strncmp(response, "true", 4) == 0) {
@@ -389,28 +407,28 @@ void on_login_button_clicked() {
         current_user.id = token ? atoi(token) : -1;
 
         token = strtok(NULL, "|");  // Username
-        strncpy(current_user.username, token ? token : "undefined", sizeof(current_user.username));
+        strncpy(current_user.username, token, sizeof(current_user.username));
 
         token = strtok(NULL, "|");  // Password
-        strncpy(current_user.password, token ? token : "undefined", sizeof(current_user.password));
+        strncpy(current_user.password, token, sizeof(current_user.password));
 
         token = strtok(NULL, "|");  // Role
-        strncpy(current_user.role, token ? token : "undefined", sizeof(current_user.role));
+        strncpy(current_user.role, token, sizeof(current_user.role));
 
         token = strtok(NULL, "|");  // Created_at
-        strncpy(current_user.created_at, token ? token : "undefined", sizeof(current_user.created_at));
+        strncpy(current_user.created_at, token, sizeof(current_user.created_at));
 
         token = strtok(NULL, "|");  // First Name
-        strncpy(current_user.first_name, token ? token : "undefined", sizeof(current_user.first_name));
+        strncpy(current_user.first_name, token, sizeof(current_user.first_name));
 
         token = strtok(NULL, "|");  // Last Name
-        strncpy(current_user.last_name, token ? token : "undefined", sizeof(current_user.last_name));
+        strncpy(current_user.last_name, token, sizeof(current_user.last_name));
 
         token = strtok(NULL, "|");  // Email
-        strncpy(current_user.email, token ? token : "undefined", sizeof(current_user.email));
+        strncpy(current_user.email, token, sizeof(current_user.email));
 
         token = strtok(NULL, "|");  // Phone Number
-        strncpy(current_user.phone_number, token ? token : "undefined", sizeof(current_user.phone_number));
+        strncpy(current_user.phone_number, token, sizeof(current_user.phone_number));
 
 
         // printf("Login successful! ID: %d, Username: %s\n", current_user.id, current_user.username);
@@ -420,6 +438,13 @@ void on_login_button_clicked() {
         GtkWidget *profile_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "profile_btn"));
         GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(main_builder, "profile_label"));
         gtk_label_set_text(GTK_LABEL(profile_label), current_user.username);
+
+        GtkWidget *users_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "users_btn"));
+        if (strcmp(current_user.role, "admin") != 0) {
+            gtk_widget_set_visible(users_btn, FALSE);
+        } else {
+            gtk_widget_set_visible(users_btn, TRUE);
+        }
 
         gtk_widget_hide(LoginPage);
         gtk_widget_show(MainPage);
@@ -434,6 +459,9 @@ void on_login_button_clicked() {
 void on_products_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(MainPage));
     gtk_widget_show (GTK_WIDGET(ProductListPage));
+
+    GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(products_builder, "profile_label"));
+    gtk_label_set_text(GTK_LABEL(profile_label), current_user.username);
 
     GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
 
@@ -633,6 +661,9 @@ void on_cancel2_product_btn_clicked(){
 void on_customers_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(MainPage));
     gtk_widget_show (GTK_WIDGET(CustomersListPage));
+
+    GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(customers_builder, "profile_label"));
+    gtk_label_set_text(GTK_LABEL(profile_label), current_user.username);
 
     GtkTreeView *customers_tv = GTK_TREE_VIEW(gtk_builder_get_object(customers_builder, "customers_tv"));
 
@@ -865,6 +896,9 @@ void on_cancel2_customer_btn_clicked(){
 void on_orders_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(MainPage));
     gtk_widget_show (GTK_WIDGET(OrdersListPage));
+
+    GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(orders_builder, "profile_label"));
+    gtk_label_set_text(GTK_LABEL(profile_label), current_user.username);
 
     GtkTreeView *orders_tv = GTK_TREE_VIEW(gtk_builder_get_object(orders_builder, "orders_tv"));
 
@@ -1196,6 +1230,9 @@ void on_users_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(MainPage));
     gtk_widget_show (GTK_WIDGET(UsersListPage));
 
+    GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(users_builder, "profile_label"));
+    gtk_label_set_text(GTK_LABEL(profile_label), current_user.username);
+
     GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
 
     char *response = get_users(sock);
@@ -1206,8 +1243,104 @@ void on_users_btn_clicked(){
 /* ----------------- PROFILE FUNCTIONS */
 
 
-void on_profile_btn_clicked(){
+void on_profile_btn_clicked(GtkWidget* Page){
     gtk_widget_hide (GTK_WIDGET(MainPage));
+    gtk_widget_show (GTK_WIDGET(ProfilePage));
+
+    GtkEntry *profile_first_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_first_name"));
+    GtkEntry *profile_last_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_last_name"));
+    GtkEntry *profile_username = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_username"));
+    GtkEntry *profile_password = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_password"));
+    GtkEntry *profile_role = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_created_at = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_email = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_phone_number = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+
+
+    gtk_entry_set_text(profile_first_name, current_user.first_name);
+    gtk_entry_set_text(profile_last_name, current_user.last_name);
+    gtk_entry_set_text(profile_username, current_user.username);
+    gtk_entry_set_text(profile_password, current_user.password);
+    gtk_entry_set_text(profile_role, current_user.role);
+    gtk_entry_set_text(profile_created_at, current_user.created_at);
+    gtk_entry_set_text(profile_email, current_user.email);
+    gtk_entry_set_text(profile_phone_number, current_user.phone_number);
+}
+
+void on_profile_btn_products_clicked(GtkWidget* Page){
+    gtk_widget_hide (GTK_WIDGET(ProductListPage));
+    gtk_widget_show (GTK_WIDGET(ProfilePage));
+
+    GtkEntry *profile_first_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_first_name"));
+    GtkEntry *profile_last_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_last_name"));
+    GtkEntry *profile_username = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_username"));
+    GtkEntry *profile_password = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_password"));
+    GtkEntry *profile_role = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_created_at = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_email = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_phone_number = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+
+
+    gtk_entry_set_text(profile_first_name, current_user.first_name);
+    gtk_entry_set_text(profile_last_name, current_user.last_name);
+    gtk_entry_set_text(profile_username, current_user.username);
+    gtk_entry_set_text(profile_password, current_user.password);
+    gtk_entry_set_text(profile_role, current_user.role);
+    gtk_entry_set_text(profile_created_at, current_user.created_at);
+    gtk_entry_set_text(profile_email, current_user.email);
+    gtk_entry_set_text(profile_phone_number, current_user.phone_number);
+}
+
+void on_profile_btn_orders_clicked(GtkWidget* Page){
+    gtk_widget_hide (GTK_WIDGET(OrdersListPage));
+    gtk_widget_show (GTK_WIDGET(ProfilePage));
+
+    GtkEntry *profile_first_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_first_name"));
+    GtkEntry *profile_last_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_last_name"));
+    GtkEntry *profile_username = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_username"));
+    GtkEntry *profile_password = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_password"));
+    GtkEntry *profile_role = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_created_at = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_email = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_phone_number = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+
+
+    gtk_entry_set_text(profile_first_name, current_user.first_name);
+    gtk_entry_set_text(profile_last_name, current_user.last_name);
+    gtk_entry_set_text(profile_username, current_user.username);
+    gtk_entry_set_text(profile_password, current_user.password);
+    gtk_entry_set_text(profile_role, current_user.role);
+    gtk_entry_set_text(profile_created_at, current_user.created_at);
+    gtk_entry_set_text(profile_email, current_user.email);
+    gtk_entry_set_text(profile_phone_number, current_user.phone_number);
+}
+
+void on_profile_btn_customers_clicked(GtkWidget* Page){
+    gtk_widget_hide (GTK_WIDGET(CustomersListPage));
+    gtk_widget_show (GTK_WIDGET(ProfilePage));
+
+    GtkEntry *profile_first_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_first_name"));
+    GtkEntry *profile_last_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_last_name"));
+    GtkEntry *profile_username = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_username"));
+    GtkEntry *profile_password = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_password"));
+    GtkEntry *profile_role = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_created_at = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_email = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+    GtkEntry *profile_phone_number = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_role"));
+
+
+    gtk_entry_set_text(profile_first_name, current_user.first_name);
+    gtk_entry_set_text(profile_last_name, current_user.last_name);
+    gtk_entry_set_text(profile_username, current_user.username);
+    gtk_entry_set_text(profile_password, current_user.password);
+    gtk_entry_set_text(profile_role, current_user.role);
+    gtk_entry_set_text(profile_created_at, current_user.created_at);
+    gtk_entry_set_text(profile_email, current_user.email);
+    gtk_entry_set_text(profile_phone_number, current_user.phone_number);
+}
+
+void on_profile_btn_users_clicked(GtkWidget* Page){
+    gtk_widget_hide (GTK_WIDGET(UsersListPage));
     gtk_widget_show (GTK_WIDGET(ProfilePage));
 
     GtkEntry *profile_first_name = GTK_ENTRY(gtk_builder_get_object(profile_builder, "profile_first_name"));
@@ -1273,4 +1406,12 @@ void on_users_back_btn_clicked(){
 void on_profile_back_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(ProfilePage));
     gtk_widget_show (GTK_WIDGET(MainPage));
+}
+
+void on_incorrect_password_ok_clicked(){
+    gtk_widget_hide(IncorrectPassword);
+}
+
+void on_empty_field_ok_clicked(){
+    gtk_widget_hide(EmptyField);
 }

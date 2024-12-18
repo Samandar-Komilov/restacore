@@ -29,7 +29,7 @@
         <property name="halign">center</property>
         <property name="valign">center</property>
         <child>
-          <object class="GtkButton" id="profile_btn">
+          <object class="GtkButton" id="profile_btn_users">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
@@ -70,7 +70,7 @@
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Users List</property>
             <attributes>
-              <attribute name="foreground" value="#1a1a5f5fb4b4"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
               <attribute name="size" value="30000"/>
             </attributes>
           </object>

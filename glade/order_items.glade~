@@ -5,18 +5,30 @@
   <object class="GtkListStore" id="order_item_liststore">
     <columns>
       <!-- column-name id -->
-      <column type="guint"/>
-      <!-- column-name name -->
-      <column type="gchar"/>
+      <column type="gint"/>
+      <!-- column-name order_id -->
+      <column type="gint"/>
+      <!-- column-name quantity -->
+      <column type="gint"/>
+      <!-- column-name price -->
+      <column type="gint"/>
+      <!-- column-name product_id -->
+      <column type="gint"/>
     </columns>
     <data>
       <row>
-        <col id="0">1</col>
-        <col id="1"/>
+        <col id="0">0</col>
+        <col id="1">0</col>
+        <col id="2">0</col>
+        <col id="3">0</col>
+        <col id="4">0</col>
       </row>
       <row>
-        <col id="0">2</col>
-        <col id="1"/>
+        <col id="0">0</col>
+        <col id="1">0</col>
+        <col id="2">0</col>
+        <col id="3">0</col>
+        <col id="4">0</col>
       </row>
     </data>
   </object>
@@ -86,7 +98,7 @@
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Order Items List</property>
             <attributes>
-              <attribute name="foreground" value="#1a1a5f5fb4b4"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
               <attribute name="size" value="30000"/>
             </attributes>
           </object>
