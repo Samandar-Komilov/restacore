@@ -89,3 +89,18 @@ void list_sessions() {
     
     pthread_mutex_unlock(&sessions_mutex);
 }
+
+void copy_sessions(Session* active_sessions_copy) {
+    pthread_mutex_lock(&sessions_mutex);
+    for (int i = 0; i < MAX_SESSIONS; i++) {
+        if (active_sessions[i].active) {
+            strncpy(active_sessions_copy[i].ip_address, active_sessions[i].ip_address, IP_LENGTH - 1);
+            strncpy(active_sessions_copy[i].username, active_sessions[i].username, USERNAME_LENGTH - 1);
+            active_sessions_copy[i].active = true;
+
+            printf("DEBUG::: IP_copy: %s, Username_copy: %s\n", active_sessions_copy[i].ip_address, active_sessions_copy[i].username);
+            printf("DEBUG::: IP: %s, Username: %s\n", active_sessions[i].ip_address, active_sessions[i].username);
+        }
+    }
+    pthread_mutex_unlock(&sessions_mutex);
+}
