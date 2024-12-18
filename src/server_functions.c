@@ -9,11 +9,96 @@
 #include <string.h>
 #include <libpq-fe.h>
 #include <time.h>
+// #include <pthread.h>
+// #include <stdbool.h>
 
 #include "utils.h"
 #include "server_functions.h"
 #include "logger/logger.h"
 
+// #define MAX_SESSIONS 10
+// #define IP_LENGTH 16  // For IPv4 addresses (xxx.xxx.xxx.xxx\0)
+// #define USERNAME_LENGTH 100
+
+// typedef struct {
+//     char ip_address[IP_LENGTH];
+//     char username[USERNAME_LENGTH];
+//     bool active;
+// } Session;
+
+// extern Session active_sessions[MAX_SESSIONS] = {0};
+// extern pthread_mutex_t sessions_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+// void init_sessions(void) {
+//     pthread_mutex_lock(&sessions_mutex);
+//     memset(active_sessions, 0, sizeof(active_sessions));
+//     pthread_mutex_unlock(&sessions_mutex);
+// }
+
+// void cleanup_sessions(void) {
+//     pthread_mutex_destroy(&sessions_mutex);
+// }
+
+// bool add_session(const char *ip, const char *username) {
+//     bool added = false;
+    
+//     pthread_mutex_lock(&sessions_mutex);
+    
+//     // First check if IP already exists
+//     for (int i = 0; i < MAX_SESSIONS; i++) {
+//         if (active_sessions[i].active && strcmp(active_sessions[i].ip_address, ip) == 0) {
+//             // Update username if IP already exists
+//             strncpy(active_sessions[i].username, username, USERNAME_LENGTH - 1);
+//             added = true;
+//             break;
+//         }
+//     }
+    
+//     // If IP doesn't exist, find first empty slot
+//     if (!added) {
+//         for (int i = 0; i < MAX_SESSIONS; i++) {
+//             if (!active_sessions[i].active) {
+//                 strncpy(active_sessions[i].ip_address, ip, IP_LENGTH - 1);
+//                 strncpy(active_sessions[i].username, username, USERNAME_LENGTH - 1);
+//                 active_sessions[i].active = true;
+//                 added = true;
+//                 break;
+//             }
+//         }
+//     }
+    
+//     pthread_mutex_unlock(&sessions_mutex);
+//     return added;
+// }
+
+// void remove_session(const char *ip) {
+//     pthread_mutex_lock(&sessions_mutex);
+    
+//     for (int i = 0; i < MAX_SESSIONS; i++) {
+//         if (active_sessions[i].active && strcmp(active_sessions[i].ip_address, ip) == 0) {
+//             active_sessions[i].active = false;
+//             memset(active_sessions[i].ip_address, 0, IP_LENGTH);
+//             memset(active_sessions[i].username, 0, USERNAME_LENGTH);
+//             break;
+//         }
+//     }
+    
+//     pthread_mutex_unlock(&sessions_mutex);
+// }
+
+// int get_active_session_count(void) {
+//     int count = 0;
+    
+//     pthread_mutex_lock(&sessions_mutex);
+//     for (int i = 0; i < MAX_SESSIONS; i++) {
+//         if (active_sessions[i].active) {
+//             count++;
+//         }
+//     }
+//     pthread_mutex_unlock(&sessions_mutex);
+    
+//     return count;
+// }
 
 void handle_login(const char *data, int client_fd);
 void handle_register(const char *data, int client_fd);
@@ -204,6 +289,21 @@ void handle_login(const char *data, int client_fd){
         send(client_fd, response, strlen(response), 0);
         // printf("[LOGIN_SUCCESS] Sent user credentials to client: %s\n", response);
         logger("INFO", "Sent user credentials to client: %s", response);
+
+        // Get client IP address
+        // struct sockaddr_in addr;
+        // socklen_t addr_size = sizeof(struct sockaddr_in);
+        // getpeername(client_fd, (struct sockaddr *)&addr, &addr_size);
+        // char client_ip[INET_ADDRSTRLEN];
+        // inet_ntop(AF_INET, &addr.sin_addr, client_ip, sizeof(client_ip));
+
+        // // Add session
+        // if (!add_session(client_ip, username)) {
+        //     logger("WARNING", "Failed to add session for IP %s - Max sessions reached", client_ip);
+        // } else {
+        //     logger("INFO", "Added session for IP %s (user: %s). Active sessions: %d", 
+        //           client_ip, username, get_active_session_count());
+        // }
     } else {
         char response[] = "false";
         send(client_fd, response, strlen(response), 0);

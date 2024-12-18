@@ -7,7 +7,7 @@
     <child>
       <object class="GtkFixed">
         <property name="width-request">500</property>
-        <property name="height-request">400</property>
+        <property name="height-request">340</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <child>
@@ -65,7 +65,7 @@
           </object>
           <packing>
             <property name="x">370</property>
-            <property name="y">350</property>
+            <property name="y">290</property>
           </packing>
         </child>
         <child>
@@ -80,7 +80,7 @@
           </object>
           <packing>
             <property name="x">30</property>
-            <property name="y">350</property>
+            <property name="y">290</property>
           </packing>
         </child>
         <child>
@@ -95,20 +95,6 @@
           <packing>
             <property name="x">150</property>
             <property name="y">230</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="create_customer_popup_visited_at">
-            <property name="width-request">200</property>
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="editable">False</property>
-            <property name="primary-icon-stock">gtk-dialog-error</property>
-            <property name="placeholder-text" translatable="yes">Visited At</property>
-          </object>
-          <packing>
-            <property name="x">150</property>
-            <property name="y">290</property>
           </packing>
         </child>
       </object>
@@ -334,7 +320,7 @@
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Customers List</property>
             <attributes>
-              <attribute name="foreground" value="#1a1a5f5fb4b4"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
               <attribute name="size" value="30000"/>
             </attributes>
           </object>

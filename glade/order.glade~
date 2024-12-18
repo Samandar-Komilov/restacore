@@ -173,9 +173,8 @@
         <child>
           <object class="GtkLabel" id="order_delete_id_label">
             <property name="width-request">100</property>
-            <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">label</property>
+            <property name="label" translatable="yes">ID</property>
           </object>
           <packing>
             <property name="x">72</property>
@@ -417,7 +416,7 @@
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Orders List</property>
             <attributes>
-              <attribute name="foreground" value="#1a1a5f5fb4b4"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
               <attribute name="size" value="30000"/>
             </attributes>
           </object>

@@ -183,7 +183,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel">
+          <object class="GtkLabel" id="update_delete_product_popup_id">
             <property name="width-request">100</property>
             <property name="height-request">80</property>
             <property name="visible">True</property>
@@ -274,7 +274,7 @@
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Products List</property>
             <attributes>
-              <attribute name="foreground" value="#1a1a5f5fb4b4"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
               <attribute name="size" value="30000"/>
             </attributes>
           </object>

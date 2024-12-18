@@ -7,10 +7,51 @@
     <property name="default-width">400</property>
     <property name="default-height">250</property>
     <child>
-      <object class="GtkFixed" id="empty_field">
-        <property name="name">empty_field</property>
+      <object class="GtkLayout">
+        <property name="width-request">500</property>
+        <property name="height-request">300</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="width-request">260</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">All fields should be filled</property>
+            <attributes>
+              <attribute name="font-desc" value="Waree Bold 13"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">130</property>
+            <property name="y">120</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="empty_field_ok">
+            <property name="label" translatable="yes">Ok</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <signal name="clicked" handler="empty_field_ok_clicked_cb" swapped="no"/>
+          </object>
+          <packing>
+            <property name="x">200</property>
+            <property name="y">160</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkImage">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="stock">gtk-stop</property>
+          </object>
+          <packing>
+            <property name="x">110</property>
+            <property name="y">127</property>
+          </packing>
+        </child>
       </object>
     </child>
   </object>
@@ -28,48 +69,43 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <child>
-          <object class="GtkLabel">
-            <property name="width-request">100</property>
-            <property name="height-request">80</property>
+          <object class="GtkLabel" id="incorrect_password">
+            <property name="width-request">200</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">Incorrect password 
-	Try again  </property>
+            <property name="label" translatable="yes">Incorrect password</property>
             <attributes>
               <attribute name="font-desc" value="Waree Bold 13"/>
             </attributes>
           </object>
           <packing>
-            <property name="x">85</property>
-            <property name="y">53</property>
+            <property name="x">160</property>
+            <property name="y">120</property>
           </packing>
         </child>
         <child>
           <object class="GtkButton" id="incorrect_password_ok">
             <property name="label" translatable="yes">Ok</property>
             <property name="width-request">100</property>
-            <property name="height-request">50</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
             <signal name="clicked" handler="incorrect_password_ok_clicked_cb" swapped="no"/>
           </object>
           <packing>
-            <property name="x">137</property>
-            <property name="y">145</property>
+            <property name="x">200</property>
+            <property name="y">160</property>
           </packing>
         </child>
         <child>
           <object class="GtkImage">
-            <property name="width-request">100</property>
-            <property name="height-request">80</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="stock">gtk-stop</property>
           </object>
           <packing>
-            <property name="x">23</property>
-            <property name="y">38</property>
+            <property name="x">140</property>
+            <property name="y">127</property>
           </packing>
         </child>
       </object>
@@ -97,7 +133,7 @@
             <property name="label" translatable="yes">Login</property>
             <attributes>
               <attribute name="font-desc" value="Sans Bold 32"/>
-              <attribute name="foreground" value="#3fff6f90bfff"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
             </attributes>
           </object>
           <packing>
@@ -212,7 +248,7 @@
             <property name="label" translatable="yes">Register</property>
             <attributes>
               <attribute name="font-desc" value="Sans Bold 32"/>
-              <attribute name="foreground" value="#3fff6f90bfff"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
             </attributes>
           </object>
           <packing>
@@ -331,7 +367,7 @@
             <property name="label" translatable="yes">Welcome to BistroSync</property>
             <attributes>
               <attribute name="font-desc" value="Sans Bold 32"/>
-              <attribute name="foreground" value="#3fff6f90bfff"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
             </attributes>
           </object>
           <packing>
@@ -374,7 +410,7 @@
             <property name="label" translatable="yes">The best Restaurant Management System in Uzbekistan</property>
             <attributes>
               <attribute name="font-desc" value="Rasa Light 10"/>
-              <attribute name="foreground" value="#1a1a5f5fb4b4"/>
+              <attribute name="foreground" value="#ffffffffffff"/>
               <attribute name="size" value="20000"/>
             </attributes>
             <style>
