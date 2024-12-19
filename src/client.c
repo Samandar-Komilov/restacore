@@ -25,7 +25,6 @@ GtkBuilder *users_builder;
 GtkBuilder *profile_builder;
 GtkBuilder *stats_builder;
 
-Session active_sessions_client[MAX_SESSIONS];
 
 GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *IncorrectPassword;
 GtkWidget *MainPage;
@@ -112,9 +111,7 @@ void on_profile_back_btn_clicked();
 
 /* Active Sessions handler prototypes */
 void on_active_sessions_btn_clicked();
-void update_labels();
-gboolean refresh_sessions();
-void on_active_sessions_exit_clicked();
+// void on_active_sessions_exit_clicked();
 
 
 /* ----------------- MAIN */
@@ -132,7 +129,7 @@ int main(int argc, char* argv[]){
     orders_builder = gtk_builder_new_from_file("glade/order.glade");
     users_builder = gtk_builder_new_from_file("glade/users.glade");
     profile_builder = gtk_builder_new_from_file("glade/profile.glade");
-    stats_builder = gtk_builder_new_from_file("glade/stats.glade");
+    // stats_builder = gtk_builder_new_from_file("glade/stats.glade");
 
     WelcomePage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "welcome_page"));
     RegisterPage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "Register"));
@@ -159,7 +156,7 @@ int main(int argc, char* argv[]){
 
     ProfilePage = GTK_WIDGET(gtk_builder_get_object(profile_builder, "MainPage"));
 
-    ActiveSessionsPage = GTK_WIDGET(gtk_builder_get_object(stats_builder, "ActiveSessionsPage"));
+    // ActiveSessionsPage = GTK_WIDGET(gtk_builder_get_object(stats_builder, "ActiveSessionsPage"));
 
     g_signal_connect(WelcomePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(RegisterPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); //..
@@ -181,7 +178,7 @@ int main(int argc, char* argv[]){
 
     g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProfilePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-    g_signal_connect(ActiveSessionsPage, "destroy", G_CALLBACK(on_active_sessions_exit_clicked), NULL);
+    // g_signal_connect(ActiveSessionsPage, "destroy", G_CALLBACK(on_active_sessions_exit_clicked), NULL);
 
     // Welcome Page data
     GtkWidget *register_button_main = GTK_WIDGET(gtk_builder_get_object(auth_builder, "register_button_main"));
@@ -1442,59 +1439,69 @@ void on_empty_field_ok_clicked(){
 // ACTIVE SESSIONS
 
 void on_active_sessions_btn_clicked(){
-    gtk_widget_show(GTK_WIDGET(ActiveSessionsPage));
-
-    // GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(products_builder, "profile_label"));
-    // gtk_label_set_text(GTK_LABEL(profile_label), current_user.username);
-
-    GtkTreeView *active_sessions_tv = GTK_TREE_VIEW(gtk_builder_get_object(stats_builder, "active_sessions_tv"));
-
-    GtkCellRenderer *renderer;
-
-    // Username Column
-    renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(active_sessions_tv),
-                                                -1, "Username", renderer, "text", 0, NULL);
-
-    // User IP Column
-    renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(active_sessions_tv),
-                                                -1, "User IP", renderer, "text", 1, NULL);
-                                                
-    GtkTreeViewColumn *col_username = gtk_tree_view_get_column(active_sessions_tv, 0);
-    GtkTreeViewColumn *col_user_ip = gtk_tree_view_get_column(active_sessions_tv, 1);
-
-    gtk_tree_view_column_set_fixed_width(col_username, 200);   // Set width for ID column
-    gtk_tree_view_column_set_fixed_width(col_user_ip, 300); // Set width for Name column
-
-    GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(stats_builder, "active_sessions_liststore"));
-    gtk_list_store_clear(liststore);
-
-
-    copy_sessions(active_sessions_client);
-
-    for (int i=0; i <= active_session_count && i<=10; i++){
-        char* username = g_strdup(active_sessions_client[i].username);
-        char* user_ip = NULL; g_strdup(active_sessions_client[i].ip_address);
-
-        printf("Username: %s, IP: %s\n", username, user_ip);
-        printf("Username: %s, IP: %s\n", active_sessions_client[i].username, active_sessions_client[i].ip_address);
-
-        GtkTreeIter iter;
-
-        gtk_list_store_append(liststore, &iter);
-        gtk_list_store_set(liststore, &iter,
-                           0, username,
-                           1, user_ip,
-                           -1);
-        g_free(username);
-        g_free(user_ip);
-    }
-
-    gtk_tree_view_set_model(active_sessions_tv, GTK_TREE_MODEL(liststore));
-
-    // g_timeout_add(1000, refresh_sessions, NULL);
+    list_sessions();
 }
+
+// void on_active_sessions_btn_clicked(){
+//     gtk_widget_show(GTK_WIDGET(ActiveSessionsPage));
+
+//     // GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(products_builder, "profile_label"));
+//     // gtk_label_set_text(GTK_LABEL(profile_label), current_user.username);
+
+//     GtkTreeView *active_sessions_tv = GTK_TREE_VIEW(gtk_builder_get_object(stats_builder, "active_sessions_tv"));
+
+//     GtkCellRenderer *renderer;
+
+//     // Username Column
+//     renderer = gtk_cell_renderer_text_new();
+//     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(active_sessions_tv),
+//                                                 -1, "Username", renderer, "text", 0, NULL);
+
+//     // User IP Column
+//     renderer = gtk_cell_renderer_text_new();
+//     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(active_sessions_tv),
+//                                                 -1, "User IP", renderer, "text", 1, NULL);
+                                                
+//     GtkTreeViewColumn *col_username = gtk_tree_view_get_column(active_sessions_tv, 0);
+//     GtkTreeViewColumn *col_user_ip = gtk_tree_view_get_column(active_sessions_tv, 1);
+
+//     gtk_tree_view_column_set_fixed_width(col_username, 200);   // Set width for ID column
+//     gtk_tree_view_column_set_fixed_width(col_user_ip, 300); // Set width for Name column
+
+//     GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(stats_builder, "active_sessions_liststore"));
+//     gtk_list_store_clear(liststore);
+
+
+//     // copy_sessions(active_sessions_client);
+
+//     char username[50];
+//     char user_ip[16];
+
+//     for (int i=0; i<=10; i++){
+//         // char* username = g_strdup(active_sessions[i].username);
+//         // char* user_ip = NULL; g_strdup(active_sessions[i].ip_address);
+
+//         strcpy(username, "username");
+//         strcpy(user_ip, );
+
+//         printf("Username: %s, IP: %s\n", username, user_ip);
+//         printf("Username: %s, IP: %s\n", active_sessions[i].username, active_sessions[i].ip_address);
+
+//         GtkTreeIter iter;
+
+//         gtk_list_store_append(liststore, &iter);
+//         gtk_list_store_set(liststore, &iter,
+//                            0, username,
+//                            1, user_ip,
+//                            -1);
+//         g_free(username);
+//         g_free(user_ip);
+//     }
+
+//     gtk_tree_view_set_model(active_sessions_tv, GTK_TREE_MODEL(liststore));
+
+//     // g_timeout_add(1000, refresh_sessions, NULL);
+// }
 
 // void update_labels() {
 //     pthread_mutex_lock(&sessions_mutex);
