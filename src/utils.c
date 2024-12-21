@@ -80,12 +80,13 @@ void remove_session(const char *ip) {
 void list_sessions() {
     pthread_mutex_lock(&sessions_mutex);
     
-    printf("Active sessions:\n");
+    printf("-----------------------\nActive sessions:\n");
     for (int i = 0; i < MAX_SESSIONS; i++) {
         if (active_sessions[i].active) {
-            printf("IP: %s, Username: %s\n", active_sessions[i].ip_address, active_sessions[i].username);
+            printf("%d) IP: %s, Username: %s\n", i+1, active_sessions[i].ip_address, active_sessions[i].username);
         }
     }
+    printf("-----------------------\n");
     
     pthread_mutex_unlock(&sessions_mutex);
 }

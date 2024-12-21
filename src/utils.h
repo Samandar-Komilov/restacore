@@ -10,20 +10,22 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define MAX_SESSIONS 10
+#define USERNAME_LENGTH 50
+#define IP_LENGTH 16
+// #define PORT 8088
+// #define MAX_BUFFER 1024
+// #define SERVER_ADDRESS "192.168.0.105"
+
 extern const char* SERVER_ADDRESS;
 extern int PORT;
 extern int MAX_BUFFER;
 extern int active_session_count;
+extern pthread_mutex_t sessions_mutex;
 
 void init_config();
 
-// #define PORT 8088
-// #define MAX_BUFFER 1024
-// #define SERVER_ADDRESS "192.168.0.105"
-#define MAX_SESSIONS 10
-#define USERNAME_LENGTH 50
-#define IP_LENGTH 16
-
+/* -------------------------------------- */
 
 typedef struct {
     char ip_address[IP_LENGTH];
@@ -31,6 +33,8 @@ typedef struct {
     bool active;
 } Session;
 
+extern Session active_sessions[MAX_SESSIONS];
+void copy_sessions(Session* active_sessions_copy);
 
 bool add_session(const char *ip, const char *username);
 void remove_session(const char *ip);

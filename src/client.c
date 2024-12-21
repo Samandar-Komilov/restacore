@@ -23,6 +23,8 @@ GtkBuilder *customers_builder;
 GtkBuilder *orders_builder;
 GtkBuilder *users_builder;
 GtkBuilder *profile_builder;
+GtkBuilder *stats_builder;
+
 
 GtkWidget *WelcomePage, *RegisterPage, *LoginPage, *EmptyField, *IncorrectPassword;
 GtkWidget *MainPage;
@@ -31,6 +33,7 @@ GtkWidget *CustomersListPage, *AddCustomerPopup, *UpdateDeleteCustomerPopup;
 GtkWidget *OrdersListPage, *AddOrderPopup, *UpdateDeleteOrderPopup, *DeleteOrderPopup;
 GtkWidget *UsersListPage;
 GtkWidget *ProfilePage;
+GtkWidget *ActiveSessionsPage;
 
 void on_incorrect_password_ok_clicked();
 void on_empty_field_ok_clicked();
@@ -106,6 +109,10 @@ void on_profile_btn_users_clicked();
 void on_profile_btn_customers_clicked();
 void on_profile_back_btn_clicked();
 
+/* Active Sessions handler prototypes */
+void on_active_sessions_btn_clicked();
+// void on_active_sessions_exit_clicked();
+
 
 /* ----------------- MAIN */
 
@@ -122,6 +129,7 @@ int main(int argc, char* argv[]){
     orders_builder = gtk_builder_new_from_file("glade/order.glade");
     users_builder = gtk_builder_new_from_file("glade/users.glade");
     profile_builder = gtk_builder_new_from_file("glade/profile.glade");
+    // stats_builder = gtk_builder_new_from_file("glade/stats.glade");
 
     WelcomePage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "welcome_page"));
     RegisterPage = GTK_WIDGET(gtk_builder_get_object(auth_builder, "Register"));
@@ -148,6 +156,8 @@ int main(int argc, char* argv[]){
 
     ProfilePage = GTK_WIDGET(gtk_builder_get_object(profile_builder, "MainPage"));
 
+    // ActiveSessionsPage = GTK_WIDGET(gtk_builder_get_object(stats_builder, "ActiveSessionsPage"));
+
     g_signal_connect(WelcomePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(RegisterPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); //..
     g_signal_connect(LoginPage, "destroy", G_CALLBACK(gtk_main_quit), NULL); // will be changed
@@ -168,6 +178,7 @@ int main(int argc, char* argv[]){
 
     g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(ProfilePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    // g_signal_connect(ActiveSessionsPage, "destroy", G_CALLBACK(on_active_sessions_exit_clicked), NULL);
 
     // Welcome Page data
     GtkWidget *register_button_main = GTK_WIDGET(gtk_builder_get_object(auth_builder, "register_button_main"));
@@ -195,12 +206,14 @@ int main(int argc, char* argv[]){
     GtkWidget *products_back_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "products_back_btn"));
     GtkWidget *customers_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "customers_btn"));
     GtkWidget *users_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "users_btn"));
+    GtkWidget *active_sessions_btn = GTK_WIDGET(gtk_builder_get_object(main_builder, "active_sessions_btn"));
     g_signal_connect(orders_btn, "clicked", G_CALLBACK(on_orders_btn_clicked), NULL);
     g_signal_connect(products_btn, "clicked", G_CALLBACK(on_products_btn_clicked), NULL);
     g_signal_connect(products_back_btn, "clicked", G_CALLBACK(on_products_back_clicked), NULL);
     g_signal_connect(customers_btn, "clicked", G_CALLBACK(on_customers_btn_clicked), NULL);
     g_signal_connect(users_btn, "clicked", G_CALLBACK(on_users_btn_clicked), NULL);
     g_signal_connect(profile_btn, "clicked", G_CALLBACK(on_profile_btn_clicked), NULL);
+    g_signal_connect(active_sessions_btn, "clicked", G_CALLBACK(on_active_sessions_btn_clicked), NULL);
 
     // Products Page data
     GtkTreeView *products_tv = GTK_TREE_VIEW(gtk_builder_get_object(products_builder, "products_tv"));
@@ -212,6 +225,7 @@ int main(int argc, char* argv[]){
     g_signal_connect(add_product_btn, "clicked", G_CALLBACK(on_add_product_btn_clicked), NULL);
     g_signal_connect(products_tv, "row-activated", G_CALLBACK(on_product_row_double_clicked), NULL);
     g_signal_connect(profile_btn_products, "clicked", G_CALLBACK(on_profile_btn_products_clicked), NULL);
+    g_signal_connect(active_sessions_btn_products, "clicked", G_CALLBACK(on_active_sessions_btn_clicked), NULL);
     // CRUD product Popup data
     GtkWidget *create_product_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_save_btn"));
     GtkWidget *create_product_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(products_builder, "create_product_popup_cancel_btn"));
@@ -236,6 +250,7 @@ int main(int argc, char* argv[]){
     g_signal_connect(customers_back_btn, "clicked", G_CALLBACK(on_customers_back_btn_clicked), NULL);
     g_signal_connect(customers_tv, "row-activated", G_CALLBACK(on_customer_row_double_clicked), NULL);
     g_signal_connect(profile_btn_customers, "clicked", G_CALLBACK(on_profile_btn_customers_clicked), NULL);
+    g_signal_connect(active_sessions_btn_customers, "clicked", G_CALLBACK(on_active_sessions_btn_clicked), NULL);
     // CRUD customer Popup data
     GtkWidget *create_customer_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "create_customer_popup_save_btn"));
     GtkWidget *create_customer_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(customers_builder, "create_customer_popup_cancel_btn"));
@@ -260,6 +275,7 @@ int main(int argc, char* argv[]){
     g_signal_connect(orders_back_btn, "clicked", G_CALLBACK(on_orders_back_btn_clicked), NULL);
     g_signal_connect(orders_tv, "row-activated", G_CALLBACK(on_order_row_double_clicked), NULL);
     g_signal_connect(profile_btn_orders, "clicked", G_CALLBACK(on_profile_btn_orders_clicked), NULL);
+    g_signal_connect(active_sessions_btn_orders, "clicked", G_CALLBACK(on_active_sessions_btn_clicked), NULL);
     // CRUD order Popup data
     GtkWidget *create_order_popup_save_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "create_order_popup_save_btn"));
     GtkWidget *create_order_popup_cancel_btn = GTK_WIDGET(gtk_builder_get_object(orders_builder, "create_order_popup_cancel_btn"));
@@ -282,8 +298,10 @@ int main(int argc, char* argv[]){
     GtkWidget *profile_btn_users = GTK_WIDGET(gtk_builder_get_object(users_builder, "profile_btn"));
     GtkWidget *users_back_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "users_back_btn"));
     GtkListStore *user_liststore = GTK_LIST_STORE(gtk_builder_get_object(users_builder, "user_liststore"));
+    GtkWidget *active_sessions_btn_users = GTK_WIDGET(gtk_builder_get_object(main_builder, "active_sessions_btn"));
     g_signal_connect(users_back_btn, "clicked", G_CALLBACK(on_users_back_btn_clicked), NULL);
     g_signal_connect(profile_btn_users, "clicked", G_CALLBACK(on_profile_btn_users_clicked), NULL);
+    g_signal_connect(active_sessions_btn_users, "clicked", G_CALLBACK(on_active_sessions_btn_clicked), NULL);
 
     // Profile Page data
     GtkWidget *profile_back_btn = GTK_WIDGET(gtk_builder_get_object(profile_builder, "profile_back_btn"));
@@ -1414,4 +1432,102 @@ void on_incorrect_password_ok_clicked(){
 
 void on_empty_field_ok_clicked(){
     gtk_widget_hide(EmptyField);
+}
+
+
+
+// ACTIVE SESSIONS
+
+void on_active_sessions_btn_clicked(){
+    list_sessions();
+}
+
+// void on_active_sessions_btn_clicked(){
+//     gtk_widget_show(GTK_WIDGET(ActiveSessionsPage));
+
+//     // GtkWidget *profile_label = GTK_WIDGET(gtk_builder_get_object(products_builder, "profile_label"));
+//     // gtk_label_set_text(GTK_LABEL(profile_label), current_user.username);
+
+//     GtkTreeView *active_sessions_tv = GTK_TREE_VIEW(gtk_builder_get_object(stats_builder, "active_sessions_tv"));
+
+//     GtkCellRenderer *renderer;
+
+//     // Username Column
+//     renderer = gtk_cell_renderer_text_new();
+//     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(active_sessions_tv),
+//                                                 -1, "Username", renderer, "text", 0, NULL);
+
+//     // User IP Column
+//     renderer = gtk_cell_renderer_text_new();
+//     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(active_sessions_tv),
+//                                                 -1, "User IP", renderer, "text", 1, NULL);
+                                                
+//     GtkTreeViewColumn *col_username = gtk_tree_view_get_column(active_sessions_tv, 0);
+//     GtkTreeViewColumn *col_user_ip = gtk_tree_view_get_column(active_sessions_tv, 1);
+
+//     gtk_tree_view_column_set_fixed_width(col_username, 200);   // Set width for ID column
+//     gtk_tree_view_column_set_fixed_width(col_user_ip, 300); // Set width for Name column
+
+//     GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(stats_builder, "active_sessions_liststore"));
+//     gtk_list_store_clear(liststore);
+
+
+//     // copy_sessions(active_sessions_client);
+
+//     char username[50];
+//     char user_ip[16];
+
+//     for (int i=0; i<=10; i++){
+//         // char* username = g_strdup(active_sessions[i].username);
+//         // char* user_ip = NULL; g_strdup(active_sessions[i].ip_address);
+
+//         strcpy(username, "username");
+//         strcpy(user_ip, );
+
+//         printf("Username: %s, IP: %s\n", username, user_ip);
+//         printf("Username: %s, IP: %s\n", active_sessions[i].username, active_sessions[i].ip_address);
+
+//         GtkTreeIter iter;
+
+//         gtk_list_store_append(liststore, &iter);
+//         gtk_list_store_set(liststore, &iter,
+//                            0, username,
+//                            1, user_ip,
+//                            -1);
+//         g_free(username);
+//         g_free(user_ip);
+//     }
+
+//     gtk_tree_view_set_model(active_sessions_tv, GTK_TREE_MODEL(liststore));
+
+//     // g_timeout_add(1000, refresh_sessions, NULL);
+// }
+
+// void update_labels() {
+//     pthread_mutex_lock(&sessions_mutex);
+
+//     for (int i = 0; i < 10; i++) {
+//         if (i < active_session_count) {
+//             // Format session info into a string
+//             char session_info[256];
+//             snprintf(session_info, sizeof(session_info), "Username: %s, IP: %s",
+//                      active_sessions[i].username, active_sessions[i].ip_address);
+//             gtk_label_set_text(GTK_LABEL(session_labels[i]), session_info);
+//             printf("Update label process: session_info: %s\n", session_info);
+//         } else {
+//             gtk_label_set_text(GTK_LABEL(session_labels[i]), "No session");
+//         }
+//     }
+
+//     pthread_mutex_unlock(&sessions_mutex);
+// }
+
+// gboolean refresh_sessions() {
+//     printf("Refresh sessions is working...");
+//     update_labels();
+//     return TRUE; // Continue calling this function periodically
+// }
+
+void on_active_sessions_exit_clicked(){
+    gtk_widget_hide(GTK_WIDGET(ActiveSessionsPage));
 }

@@ -67,10 +67,10 @@ create_directories() {
 # Main installation process
 main() {
     # Check if running as root
-    if [ "$EUID" -eq 0 ]; then
+    if [ "$EUID" -eq 0 ]; then 
         echo -e "${RED}Please do not run this script as root${NC}"
         exit 1
-    }
+    fi
 
     # Install required packages
     install_packages
@@ -86,8 +86,8 @@ main() {
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Build completed successfully!${NC}"
         echo -e "${YELLOW}You can now run:${NC}"
-        echo -e "  ${GREEN}./build/server${NC} - to start the server"
-        echo -e "  ${GREEN}./build/client${NC} - to start the client"
+        echo -e "  ${GREEN}make runserver${NC} - to start the server"
+        echo -e "  ${GREEN}make runclient${NC} - to start the client"
     else
         echo -e "${RED}Build failed. Please check the error messages above.${NC}"
         exit 1

@@ -205,7 +205,6 @@ void handle_login(const char *data, int client_fd){
                  client_id_str, username_str, password_str, role_str, created_at_str, first_name_str, last_name_str, email_str, phone_number_str);
 
         send(client_fd, response, strlen(response), 0);
-        // printf("[LOGIN_SUCCESS] Sent user credentials to client: %s\n", response);
         logger("INFO", "Sent user credentials to client: %s", response);
 
         // Get client IP address
@@ -216,7 +215,8 @@ void handle_login(const char *data, int client_fd){
         inet_ntop(AF_INET, &addr.sin_addr, client_ip, sizeof(client_ip));
 
         // Add session
-        if (!add_session(client_ip, username)) {
+        bool is_added = add_session(client_ip, username);
+        if (!is_added) {
             // Max session reached condition
             char response[] = "false";
             send(client_fd, response, strlen(response), 0);
