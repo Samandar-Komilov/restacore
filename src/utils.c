@@ -86,6 +86,7 @@ void list_sessions() {
             printf("%d) IP: %s, Username: %s\n", i+1, active_sessions[i].ip_address, active_sessions[i].username);
         }
     }
+    printf("-----------------------\n");
     
     pthread_mutex_unlock(&sessions_mutex);
 }
