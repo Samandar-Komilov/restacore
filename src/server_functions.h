@@ -30,10 +30,8 @@ void *handle_command(void *client_fd_ptr);
 void send_response(const char* data);
 
 /* User Auth */
-void handle_login(const char *data, int client_fd);
-
-/* User handlers */
-void add_user(PGconn *conn, const char *username, const char *password, const char* role);
+void handle_login(const char *data, int client_fd); 
+void handle_register(const char *data, int client_fd);
 
 /* Product handlers */
 void fetch_products(int sock);
@@ -57,5 +55,8 @@ void delete_order(const char *data, int sock);
 
 /* User handlers */
 void fetch_users(int sock);
+void add_user(const char *data, int sock);
+void update_user(const char *data, int sock);
+void delete_user(const char *data, int sock);
 
 #endif

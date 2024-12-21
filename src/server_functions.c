@@ -15,10 +15,6 @@
 #include "logger/logger.h"
 
 
-void handle_login(const char *data, int client_fd);
-void handle_register(const char *data, int client_fd);
-
-
 /* 
 --- Database connection
 */
@@ -136,6 +132,15 @@ void *handle_command(void *client_fd_ptr){
         }
         if (strstr(buffer, "DELETE_ORDER|") != NULL) {
             delete_order(buffer, client_fd);
+        }
+        if (strstr(buffer, "CREATE_USER|") != NULL) {
+            add_user(buffer, client_fd);
+        }
+        if (strstr(buffer, "UPDATE_USER|") != NULL) {
+            update_user(buffer, client_fd);
+        }
+        if (strstr(buffer, "DELETE_USER|") != NULL) {
+            delete_user(buffer, client_fd);
         }
     }
 }
@@ -298,29 +303,6 @@ void handle_register(const char* data, int client_fd) {
     // Cleanup
     PQclear(res);
     PQfinish(conn);
-}
-
-
-
-/* ******* USERS CRUD operations ******* */
-
-void add_user(PGconn *conn, const char *username, const char *password, const char* role) {
-    char query[256];
-    snprintf(query, sizeof(query),
-             "INSERT INTO \"User\" (username, password, role) VALUES ('%s', '%s', %s);",
-             username, password, role);
-
-    PGresult *res = PQexec(conn, query);
-
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
-        logger("ERROR", "Insert failed: %s", PQerrorMessage(conn));
-        PQclear(res);
-        return;
-    }
-
-    logger("INFO", "User added successfully.");
-    PQclear(res);
 }
 
 
@@ -865,7 +847,7 @@ void fetch_users(int client_socket) {
         return;
     }
 
-    PGresult *res = PQexec(conn, "SELECT id, username, password, role, created_at, first_name, last_name, email, phone_number FROM \"User\";");
+    PGresult *res = PQexec(conn, "SELECT id, username, password, role, first_name, last_name, email, phone_number, created_at FROM \"User\";");
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "SELECT query failed: %s\n", PQerrorMessage(conn));
@@ -896,6 +878,112 @@ void fetch_users(int client_socket) {
 
     send(client_socket, buffer, strlen(buffer), 0);
 
+    PQclear(res);
+    PQfinish(conn);
+}
+
+
+void add_user(const char *data, int sock){
+    char username[50], password[100], role[20], created_at[64], first_name[255], last_name[255], email[255], phone_number[20];
+    if (sscanf(data, "CREATE_USER|%49[^|]|%99[^|]|%19[^|]|%254[^|]|%254[^|]|%254[^|]|%19[^|]", username, password, role, first_name, last_name, email, phone_number) != 7) {
+        printf("CREATE_USER: [%s][%s][%s][%s][%s][%s][%s]\n", username, password, role, first_name, last_name, email, phone_number);
+        logger("ERROR", "Invalid user creation data format: %s", data);
+        fprintf(stderr, "Invalid user creation data format: %s\n", data);
+        return;
+    }
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database in add_user\n");
+        logger("ERROR", "Failed to connect to the database in add_user");
+        return;
+    }
+
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(created_at, sizeof(created_at), "%Y-%m-%d %H:%M:%S", t);
+
+    const char *query = "INSERT INTO \"User\" (username, password, role, created_at, first_name, last_name, email, phone_number) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id";
+    const char *param_values[8] = { username, password, role, created_at, first_name, last_name, email, phone_number };
+
+    PGresult *res = PQexecParams(conn, query, 8, NULL, param_values, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Insert failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Insert failed: %s", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    logger("INFO", "User added successfully.");
+    PQclear(res);
+}
+
+
+void update_user(const char *data, int sock){
+    char idStr[10], username[50], password[10], role[20], firstname[255], lastname[255], email[255], phone_number[20];
+    if (sscanf(data, "UPDATE_USER|%9[^|]|%49[^|]|%99[^|]|%19[^|]|%254[^|]|%254[^|]|%254[^|]|%19[^|]", idStr, username, password, role, firstname, lastname, email, phone_number) != 8) {
+        logger("ERROR", "Invalid user update data format: %s", data);
+        fprintf(stderr, "Invalid user update data format: %s\n", data);
+        return;
+    }
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database in update_user\n");
+        logger("ERROR", "Failed to connect to the database in update_user");
+        return;
+    }
+
+    int id = atoi(idStr);
+
+    char query[1024];
+    snprintf(query, sizeof(query),
+         "UPDATE \"User\" SET username = '%s', password = '%s', role = '%s', first_name = '%s', last_name = '%s', email = '%s', phone_number = '%s' WHERE id = %d;",
+         username, password, role, firstname, lastname, email, phone_number, id);
+
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Update failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Update failed: %s", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    logger("INFO", "User updated successfully.");
+    PQclear(res);
+}
+
+
+void delete_user(const char *data, int sock){
+    char idStr[10];
+    if (sscanf(data, "DELETE_USER|%9[^|]", idStr) != 1) {
+        logger("ERROR", "Invalid user delete data format: %s", data);
+        fprintf(stderr, "Invalid user delete data format: %s\n", data);
+        return;
+    }
+
+    PGconn *conn = connect_to_db();
+    if (conn == NULL) {
+        fprintf(stderr, "Failed to connect to the database\n");
+        logger("ERROR", "Failed to connect to the database");
+        return;
+    }
+
+    int id = atoi(idStr);
+
+    char query[1024];
+    snprintf(query, sizeof(query),
+         "DELETE FROM \"User\" WHERE id = %d;", id);
+
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Delete failed: %s\n", PQerrorMessage(conn));
+        logger("ERROR", "Delete failed: %s", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+    logger("INFO", "User deleted successfully.");
     PQclear(res);
     PQfinish(conn);
 }

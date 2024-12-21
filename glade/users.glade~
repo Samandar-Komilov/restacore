@@ -2,17 +2,340 @@
 <!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkWindow" id="AddUserPopup">
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkFixed">
+        <property name="width-request">500</property>
+        <property name="height-request">600</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkLabel" id="add_user_label">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Create User</property>
+            <attributes>
+              <attribute name="size" value="18000"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">50</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="add_user_username">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Username</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">120</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="add_user_password">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="visibility">False</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Password</property>
+            <property name="input-purpose">password</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">180</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="add_user_role">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Role</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">240</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="add_user_firstname">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">First Name</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">300</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="add_user_lastname">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Last Name</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">360</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="add_user_email">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Email</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">420</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="add_user_phone">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Phone</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">480</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="add_user_cancel_btn">
+            <property name="label">gtk-cancel</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">50</property>
+            <property name="y">550</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="add_user_save_btn">
+            <property name="label">gtk-save</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">350</property>
+            <property name="y">550</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkWindow" id="UpdateDeleteUserPopup">
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkFixed">
+        <property name="width-request">500</property>
+        <property name="height-request">600</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkLabel" id="update_delete_user_label">
+            <property name="width-request">250</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Update/Delete User</property>
+            <attributes>
+              <attribute name="size" value="18000"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="x">125</property>
+            <property name="y">50</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="update_delete_user_username">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Username</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">120</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="update_delete_user_password">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="visibility">False</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Password</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">180</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="update_delete_user_role">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Role</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">240</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="update_delete_user_firstname">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">First Name</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">300</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="update_delete_user_lastname">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Last Name</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">360</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="update_delete_user_email">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Email</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">420</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="update_delete_user_phone">
+            <property name="width-request">200</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="primary-icon-stock">gtk-edit</property>
+            <property name="placeholder-text" translatable="yes">Phone</property>
+          </object>
+          <packing>
+            <property name="x">150</property>
+            <property name="y">480</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="update_delete_user_cancel_btn">
+            <property name="label">gtk-cancel</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">50</property>
+            <property name="y">550</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="update_delete_user_delete_btn">
+            <property name="label">gtk-delete</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">200</property>
+            <property name="y">550</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="update_delete_user_apply_btn">
+            <property name="label">gtk-apply</property>
+            <property name="width-request">100</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="use-stock">True</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="x">350</property>
+            <property name="y">550</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="update_delete_user_id">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">ID</property>
+          </object>
+          <packing>
+            <property name="x">408</property>
+            <property name="y">460</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
   <object class="GtkListStore" id="user_liststore">
     <columns>
       <!-- column-name id -->
       <column type="guint"/>
-      <!-- column-name first_name -->
+      <!-- column-name username -->
       <column type="gchararray"/>
-      <!-- column-name last_name -->
+      <!-- column-name password -->
       <column type="gchararray"/>
-      <!-- column-name phone_number -->
+      <!-- column-name role -->
       <column type="gchararray"/>
-      <!-- column-name visited_at -->
+      <!-- column-name created_at -->
       <column type="gchararray"/>
     </columns>
   </object>
@@ -29,7 +352,7 @@
         <property name="halign">center</property>
         <property name="valign">center</property>
         <child>
-          <object class="GtkButton" id="profile_btn">
+          <object class="GtkButton" id="profile_btn_users">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
@@ -81,8 +404,8 @@
         </child>
         <child>
           <object class="GtkScrolledWindow">
-            <property name="width-request">1100</property>
-            <property name="height-request">600</property>
+            <property name="width-request">800</property>
+            <property name="height-request">550</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="shadow-type">in</property>
@@ -98,8 +421,8 @@
             </child>
           </object>
           <packing>
-            <property name="x">150</property>
-            <property name="y">150</property>
+            <property name="x">300</property>
+            <property name="y">180</property>
           </packing>
         </child>
         <child>
@@ -128,6 +451,20 @@
           <packing>
             <property name="x">60</property>
             <property name="y">120</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="add_user_btn">
+            <property name="label" translatable="yes">Add User</property>
+            <property name="width-request">100</property>
+            <property name="height-request">40</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="x">300</property>
+            <property name="y">140</property>
           </packing>
         </child>
       </object>

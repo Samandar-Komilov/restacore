@@ -31,5 +31,17 @@ int delete_order(int sock_fd, int id);
 
 /* Users handlers */
 char* get_users(int sock_fd);
+int add_user(
+    int sock_fd, 
+    const char *username, 
+    const char *password, 
+    const char *role,
+    const char *first_name,
+    const char *last_name,
+    const char *email,
+    const char *phone_number
+    );
+int update_user(int sock_fd, int id, const char *username, const char *password, const char *role, const char *first_name, const char *last_name, const char *email, const char *phone_number);
+int delete_user(int sock_fd, int id);
 
 #endif

@@ -465,3 +465,47 @@ char* get_users(int sock_fd) {
     logger("ERROR", "Get users failed.");
     return "-1";
 }
+
+int add_user(int sock_fd, const char *username, const char *password, const char *role, const char *firstname, const char *lastname, const char *email, const char *phone){
+    char message[512];
+    snprintf(message, sizeof(message), "CREATE_USER|%s|%s|%s|%s|%s|%s|%s", username, password, role, firstname, lastname, email, phone);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send add_user request");
+        return 0;
+    }
+
+    logger("DEBUG", "Sent add_user request: %s", message);
+
+    return 1;
+}
+
+int update_user(int sock_fd, int id, const char *username, const char *password, const char *role, const char *firstname, const char *lastname, const char *email, const char *phone) {
+    char message[512];
+    snprintf(message, sizeof(message), "UPDATE_USER|%d|%s|%s|%s|%s|%s|%s|%s", id, username, password, role, firstname, lastname, email, phone);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send update_user request");
+        logger("ERROR", "Failed to send update_user request");
+        return 1;
+    }
+
+    logger("DEBUG", "Sent update_user request: %s", message);
+
+    return 0;
+}
+
+int delete_user(int sock_fd, int id) {
+    char message[512];
+    snprintf(message, sizeof(message), "DELETE_USER|%d", id);
+
+    if (send(sock_fd, message, strlen(message), 0) == -1) {
+        perror("Failed to send delete_user request");
+        logger("ERROR", "Failed to send delete_user request");
+        return 1;
+    }
+
+    logger("DEBUG", "Sent delete_user request: %s", message);
+
+    return 0;
+}

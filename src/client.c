@@ -31,9 +31,9 @@ GtkWidget *MainPage;
 GtkWidget *ProductListPage, *AddProductPopup, *UpdateDeleteProductPopup;
 GtkWidget *CustomersListPage, *AddCustomerPopup, *UpdateDeleteCustomerPopup;
 GtkWidget *OrdersListPage, *AddOrderPopup, *UpdateDeleteOrderPopup, *DeleteOrderPopup;
-GtkWidget *UsersListPage;
+GtkWidget *UsersListPage, *AddUserPopup, *UpdateDeleteUserPopup;
 GtkWidget *ProfilePage;
-GtkWidget *ActiveSessionsPage;
+// GtkWidget *ActiveSessionsPage;
 
 void on_incorrect_password_ok_clicked();
 void on_empty_field_ok_clicked();
@@ -153,6 +153,8 @@ int main(int argc, char* argv[]){
     DeleteOrderPopup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "DeleteOrderPopup"));
 
     UsersListPage = GTK_WIDGET(gtk_builder_get_object(users_builder, "MainPage"));
+    AddUserPopup = GTK_WIDGET(gtk_builder_get_object(users_builder, "AddUserPopup"));
+    UpdateDeleteUserPopup = GTK_WIDGET(gtk_builder_get_object(users_builder, "UpdateDeleteUserPopup"));
 
     ProfilePage = GTK_WIDGET(gtk_builder_get_object(profile_builder, "MainPage"));
 
@@ -177,6 +179,9 @@ int main(int argc, char* argv[]){
     g_signal_connect(DeleteOrderPopup, "destroy", G_CALLBACK(on_order_delete_no_btn_clicked), NULL);
 
     g_signal_connect(UsersListPage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(AddUserPopup, "destroy", G_CALLBACK(on_cancel_user_btn_clicked), NULL);
+    g_signal_connect(UpdateDeleteUserPopup, "destroy", G_CALLBACK(on_cancel2_user_btn_clicked), NULL);
+
     g_signal_connect(ProfilePage, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     // g_signal_connect(ActiveSessionsPage, "destroy", G_CALLBACK(on_active_sessions_exit_clicked), NULL);
 
@@ -295,13 +300,27 @@ int main(int argc, char* argv[]){
 
 
     // Users Page data
+    GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
     GtkWidget *profile_btn_users = GTK_WIDGET(gtk_builder_get_object(users_builder, "profile_btn"));
     GtkWidget *users_back_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "users_back_btn"));
     GtkListStore *user_liststore = GTK_LIST_STORE(gtk_builder_get_object(users_builder, "user_liststore"));
     GtkWidget *active_sessions_btn_users = GTK_WIDGET(gtk_builder_get_object(main_builder, "active_sessions_btn"));
+    GtkWidget *add_user_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "add_user_btn"));
+    GtkWidget *add_user_save_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "add_user_save_btn"));
+    GtkWidget *add_user_cancel_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "add_user_cancel_btn"));
+    GtkWidget *update_delete_user_apply_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_apply_btn"));
+    GtkWidget *update_delete_user_delete_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_delete_btn"));
+    GtkWidget *update_delete_user_cancel_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_cancel_btn"));
     g_signal_connect(users_back_btn, "clicked", G_CALLBACK(on_users_back_btn_clicked), NULL);
     g_signal_connect(profile_btn_users, "clicked", G_CALLBACK(on_profile_btn_users_clicked), NULL);
     g_signal_connect(active_sessions_btn_users, "clicked", G_CALLBACK(on_active_sessions_btn_clicked), NULL);
+    g_signal_connect(add_user_btn, "clicked", G_CALLBACK(on_add_user_btn_clicked), NULL);
+    g_signal_connect(add_user_save_btn, "clicked", G_CALLBACK(on_save_user_btn_clicked), NULL);
+    g_signal_connect(add_user_cancel_btn, "clicked", G_CALLBACK(on_cancel_user_btn_clicked), NULL);
+    g_signal_connect(update_delete_user_apply_btn, "clicked", G_CALLBACK(on_update_user_btn_clicked), NULL);
+    g_signal_connect(update_delete_user_delete_btn, "clicked", G_CALLBACK(on_delete_user_btn_clicked), NULL);
+    g_signal_connect(update_delete_user_cancel_btn, "clicked", G_CALLBACK(on_cancel2_user_btn_clicked), NULL);
+    g_signal_connect(users_tv, "row-activated", G_CALLBACK(on_user_row_double_clicked), NULL);
 
     // Profile Page data
     GtkWidget *profile_back_btn = GTK_WIDGET(gtk_builder_get_object(profile_builder, "profile_back_btn"));
@@ -1162,29 +1181,6 @@ void on_order_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkT
     }
 }
 
-// void on_delete_order_btn_clicked(){
-//     GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(orders_builder, "update_delete_order_popup_id"));
-//     const char *id_str = gtk_label_get_text(GTK_LABEL(id_label));
-
-//     int id = atoi(id_str);
-
-//     int result = delete_order(sock, id);
-
-//     if (result == 0) {
-//         g_print("Order deleted successfully: %d\n", id);
-//     } else {
-//         g_print("Failed to delete order.\n");
-//     }
-
-//     // Refreshing table content
-//     GtkTreeView *orders_tv = GTK_TREE_VIEW(gtk_builder_get_object(orders_builder, "orders_tv"));
-//     char *response = get_orders(sock);
-//     setup_orders_treeview(orders_tv, response);
-
-//     GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(orders_builder, "UpdateDeleteOrderPopup"));
-//     gtk_widget_hide(popup);
-// }
-
 
 void on_orders_back_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(OrdersListPage));
@@ -1253,7 +1249,291 @@ void on_users_btn_clicked(){
 
     GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
 
+    GtkCellRenderer *renderer;
+
+    // ID
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(users_tv),
+                                                -1, "ID", renderer, "text", 0, NULL);
+
+    //  Username
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(users_tv),
+                                                -1, "Username", renderer, "text", 1, NULL);
+
+    // Password
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(users_tv),
+                                                -1, "Password", renderer, "text", 2, NULL);
+
+    // Role
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(users_tv),
+                                                -1, "Role", renderer, "text", 3, NULL);
+
+
+    // First Name
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(users_tv),
+                                                -1, "First Name", renderer, "text", 4, NULL);
+
+    // Last Name
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(users_tv),
+                                                -1, "Last Name", renderer, "text", 5, NULL);
+
+    // Email
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(users_tv),
+                                                -1, "Email", renderer, "text", 6, NULL);
+
+    // Phone
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(users_tv),
+                                                -1, "Phone", renderer, "text", 7, NULL);
+
+    // Created At
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(users_tv),
+                                                -1, "Created At", renderer, "text", 8, NULL);
+                                                
+    GtkTreeViewColumn *col_id = gtk_tree_view_get_column(users_tv, 0);
+    GtkTreeViewColumn *col_username = gtk_tree_view_get_column(users_tv, 1);
+    GtkTreeViewColumn *col_password = gtk_tree_view_get_column(users_tv, 2);
+    GtkTreeViewColumn *col_role = gtk_tree_view_get_column(users_tv, 3);
+    GtkTreeViewColumn *col_firstname = gtk_tree_view_get_column(users_tv, 4);
+    GtkTreeViewColumn *col_lastname = gtk_tree_view_get_column(users_tv, 5);
+    GtkTreeViewColumn *col_email = gtk_tree_view_get_column(users_tv, 6);
+    GtkTreeViewColumn *col_phone = gtk_tree_view_get_column(users_tv, 7);
+    GtkTreeViewColumn *col_createdat = gtk_tree_view_get_column(users_tv, 8);
+
+    gtk_tree_view_column_set_fixed_width(col_id, 50);
+    gtk_tree_view_column_set_fixed_width(col_username, 150);
+    gtk_tree_view_column_set_fixed_width(col_password, 100);
+    gtk_tree_view_column_set_fixed_width(col_role, 50);
+    gtk_tree_view_column_set_fixed_width(col_firstname, 100);
+    gtk_tree_view_column_set_fixed_width(col_lastname, 100);
+    gtk_tree_view_column_set_fixed_width(col_email, 100);
+    gtk_tree_view_column_set_fixed_width(col_phone, 100);
+    gtk_tree_view_column_set_fixed_width(col_createdat, 100);
+
     char *response = get_users(sock);
+
+    setup_users_treeview(users_tv, response);
+}
+
+void setup_users_treeview(GtkTreeView *treeview, char *response) {
+    GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(users_builder, "user_liststore"));
+    gtk_list_store_clear(liststore);
+
+    char *token = strtok(response, "|"); // skip true
+    token = strtok(NULL, "|");
+
+    while (token != NULL) {
+        guint id;
+        char* username = NULL, *password = NULL, *role = NULL, *created_at = NULL, *first_name = NULL, *last_name = NULL, *email = NULL, *phone = NULL;
+
+        sscanf(token, "%d,%m[^,],%m[^,],%m[^,],%m[^,],%m[^,],%m[^,],%m[^,],%m[^,]", &id, &username, &password, &role, &first_name, &last_name, &email, &phone, &created_at);
+
+        GtkTreeIter iter;
+        gtk_list_store_append(liststore, &iter);
+        gtk_list_store_set(liststore, &iter,
+                           0, id,
+                           1, username,
+                           2, password,
+                           3, role,
+                           4, first_name,
+                           5, last_name,
+                           6, email,
+                           7, phone,
+                           8, created_at,
+                           -1);
+
+        g_free(username);
+        g_free(password);
+        g_free(role);
+        g_free(first_name);
+        g_free(last_name);
+        g_free(email);
+        g_free(phone);
+        g_free(created_at);
+
+        token = strtok(NULL, "|");
+    }
+}
+
+void on_add_user_btn_clicked() {
+    gtk_widget_show(AddUserPopup);
+}
+
+
+void on_save_user_btn_clicked(){
+    GtkEntry *username_entry = GTK_ENTRY(gtk_builder_get_object(users_builder, "add_user_username"));
+    GtkEntry *password_entry = GTK_ENTRY(gtk_builder_get_object(users_builder, "add_user_password"));
+    GtkEntry *role_entry = GTK_ENTRY(gtk_builder_get_object(users_builder, "add_user_role"));
+    GtkEntry *first_name_entry = GTK_ENTRY(gtk_builder_get_object(users_builder, "add_user_firstname"));
+    GtkEntry *last_name_entry = GTK_ENTRY(gtk_builder_get_object(users_builder, "add_user_lastname"));
+    GtkEntry *email_entry = GTK_ENTRY(gtk_builder_get_object(users_builder, "add_user_email"));
+    GtkEntry *phone_entry = GTK_ENTRY(gtk_builder_get_object(users_builder, "add_user_phone"));
+
+    const char *username = gtk_entry_get_text(username_entry);
+    const char *password = gtk_entry_get_text(password_entry);
+    const char *role = gtk_entry_get_text(role_entry);
+    const char *firstname = gtk_entry_get_text(first_name_entry);
+    const char *lastname = gtk_entry_get_text(last_name_entry);
+    const char *email = gtk_entry_get_text(email_entry);
+    const char *phone = gtk_entry_get_text(phone_entry);
+
+    int result = add_user(sock, username, password, role, firstname, lastname, email, phone);
+
+    if (result == 1) {
+        logger("INFO", "User added successfully: %s, %s", username, role);
+    } else {
+        logger("ERROR", "Failed to add user.");
+    }
+
+    // Refreshing table content
+    GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "products_tv"));
+    char *response = get_users(sock);
+    setup_users_treeview(users_tv, response);
+
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(users_builder, "AddUserPopup"));
+    gtk_widget_hide(popup);
+}
+
+void on_cancel_user_btn_clicked(){
+    gtk_widget_hide(AddUserPopup);
+}
+
+void on_cancel2_user_btn_clicked(){
+    gtk_widget_hide(UpdateDeleteUserPopup);
+}
+
+void on_user_row_double_clicked(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data){
+    GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
+    GtkListStore *liststore = GTK_LIST_STORE(gtk_tree_view_get_model(tree_view));
+    GtkTreeIter iter;
+
+    // Get the selected row data
+    if (gtk_tree_model_get_iter(GTK_TREE_MODEL(liststore), &iter, path)) {
+        guint id;
+        gchar *username;
+        gchar *password;
+        gchar *role;
+        gchar *first_name;
+        gchar *last_name;
+        gchar *email;
+        gchar *phone;
+
+        // Retrieve data from the selected row
+        gtk_tree_model_get(GTK_TREE_MODEL(liststore), &iter,
+                           0, &id,
+                           1, &username,
+                           2, &password,
+                           3, &role,
+                           4, &first_name,
+                           5, &last_name,
+                           6, &email,
+                           7, &phone,
+                           -1);
+
+        // Set the data in the entry fields of the popup window
+        GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(users_builder, "update_delete_user_id"));
+        GtkWidget *username_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_username"));
+        GtkWidget *password_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_password"));
+        GtkWidget *role_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_role"));
+        GtkWidget *firstname_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_firstname"));
+        GtkWidget *lastname_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_lastname"));
+        GtkWidget *email_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_email"));
+        GtkWidget *phone_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_phone"));
+
+        gtk_label_set_text(GTK_LABEL(id_label), g_strdup_printf("%d", id));
+        gtk_entry_set_text(GTK_ENTRY(username_entry), username);
+        gtk_entry_set_text(GTK_ENTRY(password_entry), password);
+        gtk_entry_set_text(GTK_ENTRY(role_entry), role);
+        gtk_entry_set_text(GTK_ENTRY(firstname_entry), first_name);
+        gtk_entry_set_text(GTK_ENTRY(lastname_entry), last_name);
+        gtk_entry_set_text(GTK_ENTRY(email_entry), email);
+        gtk_entry_set_text(GTK_ENTRY(phone_entry), phone);
+
+        // Show the update/delete popup window
+        gtk_widget_show(UpdateDeleteUserPopup);
+
+        g_free(username);
+        g_free(password);
+        g_free(role);
+        g_free(first_name);
+        g_free(last_name);
+        g_free(email);
+        g_free(phone);
+    }
+    gtk_widget_show(UpdateDeleteUserPopup);
+}
+
+void on_update_user_btn_clicked(){
+    GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(users_builder, "update_delete_user_id"));
+    GtkWidget *username_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_username"));
+    GtkWidget *password_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_password"));
+    GtkWidget *role_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_role"));
+    GtkWidget *firstname_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_firstname"));
+    GtkWidget *lastname_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_lastname"));
+    GtkWidget *email_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_email"));
+    GtkWidget *phone_entry = GTK_WIDGET(gtk_builder_get_object(users_builder, "update_delete_user_phone"));
+
+    const char *id_str = gtk_label_get_text(GTK_LABEL(id_label));
+    const char *username = gtk_entry_get_text(GTK_ENTRY(username_entry));
+    const char *password = gtk_entry_get_text(GTK_ENTRY(password_entry));
+    const char *role = gtk_entry_get_text(GTK_ENTRY(role_entry));
+    const char *firstname = gtk_entry_get_text(GTK_ENTRY(firstname_entry));
+    const char *lastname = gtk_entry_get_text(GTK_ENTRY(lastname_entry));
+    const char *email = gtk_entry_get_text(GTK_ENTRY(email_entry));
+    const char *phone = gtk_entry_get_text(GTK_ENTRY(phone_entry));
+
+    int id = atoi(id_str);
+
+    if (strlen(username) == 0 || strlen(password) == 0 || strlen(role) == 0) {
+        logger("ERROR", "UPDATE USER: Invalid input: Username and Password fields cannot be empty.");
+        return;
+    }
+
+    int result = update_user(sock, id, username, password, role, firstname, lastname, email, phone);
+
+    if (result == 0) {
+        logger("INFO", "User updated successfully: %d, %s, %s, %s, %s, %s, %s, %s", id, username, password, role, firstname, lastname, email, phone);
+    } else {
+        logger("INFO", "Failed to update user: %d, %s, %s, %s, %s, %s, %s, %s", id, username, password, role, firstname, lastname, email, phone);
+    }
+
+    // Refreshing table content
+    GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
+    char *response = get_users(sock);
+    setup_users_treeview(users_tv, response);
+
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(users_builder, "UpdateDeleteUserPopup"));
+    gtk_widget_hide(popup);
+}
+
+void on_delete_user_btn_clicked(){
+    GtkLabel *id_label = GTK_LABEL(gtk_builder_get_object(users_builder, "update_delete_user_id"));
+    const char *id_str = gtk_label_get_text(GTK_LABEL(id_label));
+
+    int id = atoi(id_str);
+
+    int result = delete_user(sock, id);
+
+    if (result == 0) {
+        logger("INFO", "User deleted successfully: %d", id);
+    } else {
+        logger("ERROR", "Failed to delete user: %d", id);
+    }
+
+    // Refreshing table content
+    GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
+    char *response = get_users(sock);
+    setup_users_treeview(users_tv, response);
+
+    GtkWidget *popup = GTK_WIDGET(gtk_builder_get_object(users_builder, "UpdateDeleteUserPopup"));
+    gtk_widget_hide(popup);
 }
 
 
@@ -1528,6 +1808,6 @@ void on_active_sessions_btn_clicked(){
 //     return TRUE; // Continue calling this function periodically
 // }
 
-void on_active_sessions_exit_clicked(){
-    gtk_widget_hide(GTK_WIDGET(ActiveSessionsPage));
-}
+// void on_active_sessions_exit_clicked(){
+//     gtk_widget_hide(GTK_WIDGET(ActiveSessionsPage));
+// }
