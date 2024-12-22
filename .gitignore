@@ -59,3 +59,4 @@ build/
 .env
 logs/
 trial/
+sessions.txt

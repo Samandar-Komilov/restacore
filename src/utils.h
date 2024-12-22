@@ -39,6 +39,7 @@ void copy_sessions(Session* active_sessions_copy);
 bool add_session(const char *ip, const char *username);
 void remove_session(const char *ip);
 void list_sessions();
+char* list_sessions_client();
 
 
 typedef struct {

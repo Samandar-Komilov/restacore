@@ -335,6 +335,14 @@
       <column type="gchararray"/>
       <!-- column-name role -->
       <column type="gchararray"/>
+      <!-- column-name first_name -->
+      <column type="gchararray"/>
+      <!-- column-name last_name -->
+      <column type="gchararray"/>
+      <!-- column-name email -->
+      <column type="gchararray"/>
+      <!-- column-name phone_number -->
+      <column type="gchararray"/>
       <!-- column-name created_at -->
       <column type="gchararray"/>
     </columns>

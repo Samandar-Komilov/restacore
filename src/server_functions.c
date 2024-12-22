@@ -74,7 +74,7 @@ void *handle_command(void *client_fd_ptr){
         ssize_t received_bytes = recv(client_fd, buffer, sizeof(buffer), 0);
 
         if (received_bytes <= 0) {
-            printf("[DISCONNECTED] Connection closed by client [%s]\n",client_ip);
+            printf("\033[0;31m[DISCONNECTED] Connection closed by client [%s]\033[0m\n----------------\n",client_ip);
             logger("INFO", "[DISCONNECTED] Connection closed by client [%s]",client_ip);
             remove_session(client_ip);
             close(client_fd);
@@ -987,3 +987,4 @@ void delete_user(const char *data, int sock){
     PQclear(res);
     PQfinish(conn);
 }
+

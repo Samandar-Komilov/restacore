@@ -434,7 +434,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="active_sessions_btn">
+          <object class="GtkButton" id="active_sessions_btn_users">
             <property name="label" translatable="yes">Active Sessions</property>
             <property name="width-request">100</property>
             <property name="visible">True</property>
