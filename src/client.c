@@ -51,7 +51,7 @@ void on_login_back_clicked();
 
 /* Orders handler prototypes */
 void on_orders_btn_clicked();
-// void on_orders_back_btn_clicked();
+void on_orders_back_btn_clicked();
 void setup_orders_treeview(GtkTreeView *treeview, char *response);
 void load_customers_combobox(GtkComboBoxText *combo_box, char *response);
 void load_products_combobox(GtkComboBoxText *combo_box, char *response);
@@ -301,10 +301,10 @@ int main(int argc, char* argv[]){
 
     // Users Page data
     GtkTreeView *users_tv = GTK_TREE_VIEW(gtk_builder_get_object(users_builder, "users_tv"));
-    GtkWidget *profile_btn_users = GTK_WIDGET(gtk_builder_get_object(users_builder, "profile_btn"));
+    GtkWidget *profile_btn_users = GTK_WIDGET(gtk_builder_get_object(users_builder, "profile_btn_users"));
     GtkWidget *users_back_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "users_back_btn"));
     GtkListStore *user_liststore = GTK_LIST_STORE(gtk_builder_get_object(users_builder, "user_liststore"));
-    GtkWidget *active_sessions_btn_users = GTK_WIDGET(gtk_builder_get_object(main_builder, "active_sessions_btn"));
+    GtkWidget *active_sessions_btn_users = GTK_WIDGET(gtk_builder_get_object(users_builder, "active_sessions_btn_users"));
     GtkWidget *add_user_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "add_user_btn"));
     GtkWidget *add_user_save_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "add_user_save_btn"));
     GtkWidget *add_user_cancel_btn = GTK_WIDGET(gtk_builder_get_object(users_builder, "add_user_cancel_btn"));
@@ -1541,7 +1541,7 @@ void on_delete_user_btn_clicked(){
 /* ----------------- PROFILE FUNCTIONS */
 
 
-void on_profile_btn_clicked(GtkWidget* Page){
+void on_profile_btn_clicked(){
     gtk_widget_hide (GTK_WIDGET(MainPage));
     gtk_widget_show (GTK_WIDGET(ProfilePage));
 
@@ -1565,7 +1565,7 @@ void on_profile_btn_clicked(GtkWidget* Page){
     gtk_entry_set_text(profile_phone_number, current_user.phone_number);
 }
 
-void on_profile_btn_products_clicked(GtkWidget* Page){
+void on_profile_btn_products_clicked(){
     gtk_widget_hide (GTK_WIDGET(ProductListPage));
     gtk_widget_show (GTK_WIDGET(ProfilePage));
 
@@ -1589,7 +1589,7 @@ void on_profile_btn_products_clicked(GtkWidget* Page){
     gtk_entry_set_text(profile_phone_number, current_user.phone_number);
 }
 
-void on_profile_btn_orders_clicked(GtkWidget* Page){
+void on_profile_btn_orders_clicked(){
     gtk_widget_hide (GTK_WIDGET(OrdersListPage));
     gtk_widget_show (GTK_WIDGET(ProfilePage));
 
@@ -1613,7 +1613,7 @@ void on_profile_btn_orders_clicked(GtkWidget* Page){
     gtk_entry_set_text(profile_phone_number, current_user.phone_number);
 }
 
-void on_profile_btn_customers_clicked(GtkWidget* Page){
+void on_profile_btn_customers_clicked(){
     gtk_widget_hide (GTK_WIDGET(CustomersListPage));
     gtk_widget_show (GTK_WIDGET(ProfilePage));
 
@@ -1637,7 +1637,7 @@ void on_profile_btn_customers_clicked(GtkWidget* Page){
     gtk_entry_set_text(profile_phone_number, current_user.phone_number);
 }
 
-void on_profile_btn_users_clicked(GtkWidget* Page){
+void on_profile_btn_users_clicked(){
     gtk_widget_hide (GTK_WIDGET(UsersListPage));
     gtk_widget_show (GTK_WIDGET(ProfilePage));
 

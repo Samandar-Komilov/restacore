@@ -45,13 +45,18 @@ int connect_to_server(){
         exit(EXIT_FAILURE);
     }
 
+    printf("\033[0;33m");
     printf("Client is connecting to the server...\n");
+    printf("\033[0m");
     while (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         printf("Cennection failed. Retrying...");
         sleep(1);
     }
 
+
+    printf("\033[0;32m");
     printf("Connection established.\n");
+    printf("\033[0m");
     logger("INFO", "Connection established.");
     return sock;
 }

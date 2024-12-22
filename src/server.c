@@ -49,7 +49,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    printf("[LISTENING] Port Number: %d\n", PORT);
+    printf("\033[1;32m[LISTENING] Port Number: %d\033[0m\n", PORT);
     logger("INFO", "Listening on Port Number: %d", PORT);
 
     while (1) {
@@ -65,7 +65,7 @@ int main() {
         char client_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
 
-        printf("[CONNECTED] New connection from %s\n", client_ip);
+        printf("\033[1;32m[CONNECTED] New connection from %s\033[0m\n", client_ip);
         logger("INFO", "[CONNECTED] New connection from %s\n", client_ip);
 
         int* client_fd_copy = (int*)malloc(sizeof(int));
@@ -85,7 +85,8 @@ int main() {
             continue;
         }
 
-        printf("[INFO] Thread created for client %s\n", client_ip);
+        // printf("[INFO] Thread created for client %s\n", client_ip);
+        printf("\033[1;32m[INFO] Thread created for client %s\033[0m\n", client_ip);
 
         pthread_detach(client_thread);
     }
