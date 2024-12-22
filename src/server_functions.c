@@ -987,3 +987,4 @@ void delete_user(const char *data, int sock){
     PQclear(res);
     PQfinish(conn);
 }
+
