@@ -1,5 +1,5 @@
-# 🍽 Bistrosync
-BistroSync - a Restaurant Management System for desktop, written in C. Primarily intended as a university project and learning with practice.
+# 🍽 RestaCore
+RestaCore - a Restaurant Management System for desktop, written in C. Primarily intended as a university project and learning with practice.
 
 ![image](https://github.com/user-attachments/assets/f0bc8b23-548d-4e57-af09-578d77510cb0)
 
